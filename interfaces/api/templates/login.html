@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Hinchas - U de Chile Stats</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v=2.0">
+    <script>
+        // Cargar tema guardado antes de renderizar el body para evitar flash
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            /* El background se hereda de styles.css (radial-gradient claro) */
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 3rem 2.5rem;
+            animation: authFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            /* .glass se encarga del fondo, borde y sombra principal */
+        }
+
+        @keyframes authFadeIn {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .auth-logo .u-giant {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #d90429 !important; /* Rojo Pasión siempre */
+            text-shadow: 0 0 15px rgba(217, 4, 41, 0.4);
+            display: inline-block;
+            animation: pulseLogoLogin 3s infinite ease-in-out;
+            line-height: 1;
+        }
+
+        @keyframes pulseLogoLogin {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 15px rgba(217, 4, 41, 0.4); }
+            50% { transform: scale(1.05); text-shadow: 0 0 25px rgba(217, 4, 41, 0.65); }
+        }
+
+        .auth-title {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--text-primary), var(--udechile-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .auth-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--card-border);
+            margin-bottom: 2.5rem;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .auth-tab.active {
+            color: var(--udechile-blue);
+            border-bottom: 3px solid var(--udechile-blue);
+            text-shadow: 0 0 10px var(--udechile-blue-glow);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition-smooth);
+            box-shadow: inset 0 2px 4px rgba(15, 32, 66, 0.02);
+        }
+
+        .form-input:focus {
+            border-color: var(--udechile-blue);
+            box-shadow: 0 0 10px var(--udechile-blue-glow), inset 0 2px 4px rgba(15, 32, 66, 0.02);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--udechile-blue), #003a8c);
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--udechile-blue-glow);
+            transition: var(--transition-smooth);
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #1890ff, var(--udechile-blue));
+            box-shadow: 0 8px 25px rgba(0, 80, 179, 0.35);
+        }
+
+        .auth-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-alert {
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            animation: alertSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 500;
+        }
+
+        @keyframes alertSlide {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .alert-error {
+            background: rgba(217, 4, 41, 0.08);
+            border: 1px solid rgba(217, 4, 41, 0.2);
+            color: var(--udechile-red);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+
+<button id="theme-toggle" onclick="toggleTheme()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: rgba(15, 80, 179, 0.05); border: 1px solid rgba(15, 80, 179, 0.1); cursor: pointer; color: var(--text-primary); display: flex; align-items: center; justify-content: center; padding: 0.6rem; border-radius: 50%; transition: var(--transition-smooth); z-index: 100;" title="Cambiar Tema">
+    <i data-lucide="moon" id="theme-icon" style="width: 1.25rem; height: 1.25rem;"></i>
+</button>
+
+<div class="auth-container glass">
+    <div class="auth-logo">
+        <span class="u-giant">U</span>
+    </div>
+    
+    <h1 class="auth-title">U de Chile Stats</h1>
+    <p class="auth-subtitle">Estadísticas exclusivas para hinchas de verdad</p>
+    
+    <div class="auth-tabs">
+        <div id="tab-login" class="auth-tab active" onclick="switchTab('login')">
+            <i data-lucide="log-in" style="width: 1.2rem; height: 1.2rem;"></i> Iniciar Sesión
+        </div>
+        <div id="tab-register" class="auth-tab" onclick="switchTab('register')">
+            <i data-lucide="user-plus" style="width: 1.2rem; height: 1.2rem;"></i> Registrarse
+        </div>
+    </div>
+    
+    <div id="auth-alert" class="auth-alert" style="display: none;"></div>
+    
+    <form id="auth-form" onsubmit="handleAuth(event)">
+        <!-- Campo Nombre (solo para Registro) -->
+        <div class="form-group" id="name-group" style="display: none;">
+            <label class="form-label" for="name">Nombre de Hincha</label>
+            <input class="form-input" type="text" id="name" placeholder="Ej. Lucho Román">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="email">Correo Electrónico</label>
+            <input class="form-input" type="email" id="email" required placeholder="correo@ejemplo.com">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="password">Contraseña</label>
+            <input class="form-input" type="password" id="password" required placeholder="••••••••" minlength="6">
+        </div>
+
+        <!-- Campo Confirmar Contraseña (solo para Registro) -->
+        <div class="form-group" id="confirm-password-group" style="display: none;">
+            <label class="form-label" for="confirm-password">Confirmar Contraseña</label>
+            <input class="form-input" type="password" id="confirm-password" placeholder="••••••••" minlength="6">
+        </div>
+        
+        <button type="submit" id="submit-btn" class="auth-btn">
+            <i data-lucide="arrow-right-circle" style="width: 1.4rem; height: 1.4rem;"></i> INGRESAR
+        </button>
+    </form>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<script>
+    // Inicializar iconos al cargar y configurar el tema
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme');
+        const icon = document.getElementById('theme-icon');
+        if (icon && savedTheme === 'blue') {
+            icon.setAttribute('data-lucide', 'sun');
+        }
+        lucide.createIcons();
+    });
+
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'blue' ? 'light' : 'blue';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        const icon = document.getElementById('theme-icon');
+        if (newTheme === 'blue') {
+            icon.setAttribute('data-lucide', 'sun');
+        } else {
+            icon.setAttribute('data-lucide', 'moon');
+        }
+        lucide.createIcons();
+    }
+
+    // Inicializar cliente de Supabase
+    const supabaseUrl = "{{ supabase_url }}";
+    const supabaseKey = "{{ supabase_anon_key }}";
+    
+    let supabaseClient = null;
+    if (supabaseKey && supabaseKey !== "None" && supabaseKey !== "") {
+        supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    } else {
+        showAlert('error', 'Falta configurar la variable SUPABASE_ANON_KEY en tu archivo .env.');
+    }
+
+    let activeMode = 'login';
+
+    function switchTab(mode) {
+        activeMode = mode;
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        const nameGroup = document.getElementById('name-group');
+        const nameInput = document.getElementById('name');
+        const confirmPwGroup = document.getElementById('confirm-password-group');
+        const confirmPwInput = document.getElementById('confirm-password');
+        
+        if (mode === 'login') {
+            tabLogin.classList.add('active');
+            tabRegister.classList.remove('active');
+            submitBtn.innerHTML = '<i data-lucide="arrow-right-circle" style="width: 1.4rem; height: 1.4rem;"></i> INGRESAR';
+            
+            nameGroup.style.display = 'none';
+            nameInput.required = false;
+            confirmPwGroup.style.display = 'none';
+            confirmPwInput.required = false;
+        } else {
+            tabRegister.classList.add('active');
+            tabLogin.classList.remove('active');
+            submitBtn.innerHTML = '<i data-lucide="user-check" style="width: 1.4rem; height: 1.4rem;"></i> CREAR CUENTA';
+            
+            nameGroup.style.display = 'flex';
+            nameInput.required = true;
+            confirmPwGroup.style.display = 'flex';
+            confirmPwInput.required = true;
+        }
+        lucide.createIcons();
+        hideAlert();
+    }
+
+    function showAlert(type, message) {
+        const alertBox = document.getElementById('auth-alert');
+        if (type === 'error') {
+            alertBox.className = 'auth-alert alert-error';
+            alertBox.innerHTML = `<i data-lucide="alert-triangle" style="width: 1.2rem; height: 1.2rem;"></i> ${message}`;
+        } else {
+            alertBox.className = 'auth-alert alert-success';
+            alertBox.innerHTML = `<i data-lucide="check-circle-2" style="width: 1.2rem; height: 1.2rem;"></i> ${message}`;
+        }
+        alertBox.style.display = 'flex';
+        lucide.createIcons();
+    }
+
+    function hideAlert() {
+        document.getElementById('auth-alert').style.display = 'none';
+    }
+
+    async function handleAuth(event) {
+        event.preventDefault();
+        hideAlert();
+        
+        if (!supabaseClient) {
+            showAlert('error', 'El cliente de Supabase no está configurado. Revisa tu archivo .env');
+            return;
+        }
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const submitBtn = document.getElementById('submit-btn');
+        
+        if (activeMode === 'register') {
+            const name = document.getElementById('name').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                showAlert('error', 'Las contraseñas no coinciden. Por favor, revísalas.');
+                return;
+            }
+        }
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i data-lucide="loader" style="width: 1.4rem; height: 1.4rem;" class="lucide-spin"></i> PROCESANDO...';
+        lucide.createIcons();
+
+        try {
+            if (activeMode === 'login') {
+                // Iniciar sesión
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                
+                await setSession(data.session);
+            } else {
+                // Registrarse
+                const name = document.getElementById('name').value;
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: name
+                        }
+                    }
+                });
+                if (error) throw error;
+                
+                // Si identities está vacío, significa que el correo ya existía en la base de datos (Protección contra Enumeración de Supabase)
+                if (data.user && data.user.identities && data.user.identities.length === 0) {
+                    showAlert('error', 'Este correo electrónico ya está registrado. Por favor, inicia sesión.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="user-check" style="width: 1.4rem; height: 1.4rem;"></i> CREAR CUENTA';
+                    lucide.createIcons();
+                    return;
+                }
+                
+                // En Supabase gratis, si no hay confirmación de email activada, inicia sesión directo
+                if (data.session) {
+                    await setSession(data.session);
+                } else {
+                    showAlert('success', '¡Cuenta creada! Revisa tu correo de confirmación.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="user-check" style="width: 1.4rem; height: 1.4rem;"></i> CREAR CUENTA';
+                    lucide.createIcons();
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            showAlert('error', err.message || 'Ocurrió un error inesperado.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = activeMode === 'login' 
+                ? '<i data-lucide="arrow-right-circle" style="width: 1.4rem; height: 1.4rem;"></i> INGRESAR' 
+                : '<i data-lucide="user-check" style="width: 1.4rem; height: 1.4rem;"></i> CREAR CUENTA';
+            lucide.createIcons();
+        }
+    }
+
+    async function setSession(session) {
+        if (!session) return;
+        
+        // Extraer el nombre de hincha desde los metadatos de Supabase
+        let fullName = session.user.user_metadata ? session.user.user_metadata.full_name : null;
+        
+        // Si la cuenta es antigua o se registró antes de tener el campo Nombre, le preguntamos amistosamente
+        if (!fullName || fullName.trim() === "") {
+            const chosenName = prompt("¡Bienvenido a U de Chile Stats!\nPor favor, ingresa tu Nombre de Hincha:");
+            if (chosenName && chosenName.trim() !== "") {
+                fullName = chosenName.trim();
+                try {
+                    // Actualizar los metadatos del usuario en Supabase en tiempo real
+                    await supabaseClient.auth.updateUser({
+                        data: { full_name: fullName }
+                    });
+                } catch (updateErr) {
+                    console.error("No se pudo guardar el nombre en Supabase:", updateErr);
+                }
+            } else {
+                // Fallback si cancela o deja en blanco
+                fullName = session.user.email.split('@')[0];
+            }
+        }
+        
+        // Enviar sesión a FastAPI para configurar las cookies de sesión del servidor
+        const response = await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: session.user.id,
+                email: session.user.email,
+                access_token: session.access_token,
+                name: fullName
+            })
+        });
+
+        if (response.ok) {
+            // Redirigir al inicio una vez que las cookies están configuradas
+            window.location.href = '/';
+        } else {
+            showAlert('error', 'Error al sincronizar sesión del servidor.');
+            document.getElementById('submit-btn').disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>

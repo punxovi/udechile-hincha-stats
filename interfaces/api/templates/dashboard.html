@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - U de Chile{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Dashboard de Rendimiento</h1>
+    <p>Hincha: <span class="badge">{% if current_user and current_user.id == user_id %}{{ current_user.name }}{% else %}Hincha de la U{% endif %}</span></p>
+</div>
+
+<div class="bento-grid">
+    <!-- Fila 1: Tarjetas de Métricas -->
+    <div class="metric-card glass win bento-item-3">
+        <div style="display: flex; justify-content: center; margin-bottom: 0.5rem; color: var(--success); opacity: 0.8;">
+            <i data-lucide="trending-up" style="width: 1.5rem; height: 1.5rem;"></i>
+        </div>
+        <h3>Rendimiento</h3>
+        <div class="metric-value">{{ "%.1f"|format(snapshot.win_percentage) }}%</div>
+        <div class="metric-label">Puntos obtenidos</div>
+    </div>
+    
+    <div class="metric-card glass draw bento-item-3">
+        <div style="display: flex; justify-content: center; margin-bottom: 0.5rem; color: var(--text-secondary); opacity: 0.8;">
+            <i data-lucide="shield" style="width: 1.5rem; height: 1.5rem;"></i>
+        </div>
+        <h3>Invicto</h3>
+        <div class="metric-value">{{ "%.1f"|format(snapshot.undefeated_percentage) }}%</div>
+        <div class="metric-label">Partidos sin perder</div>
+    </div>
+
+    <div class="metric-card glass win bento-item-3">
+        <div style="display: flex; justify-content: center; margin-bottom: 0.5rem; color: var(--udechile-blue); opacity: 0.8;">
+            <i data-lucide="ticket" style="width: 1.5rem; height: 1.5rem;"></i>
+        </div>
+        <h3>Partidos Vistos</h3>
+        <div class="metric-value">{{ snapshot.total_matches_attended }}</div>
+        <div class="metric-label">Asistencia total</div>
+    </div>
+    
+    <div class="metric-card glass loss bento-item-3">
+        <div style="display: flex; justify-content: center; margin-bottom: 0.5rem; color: var(--text-tertiary); opacity: 0.8;">
+            <i data-lucide="goal" style="width: 1.5rem; height: 1.5rem;"></i>
+        </div>
+        <h3>Goles a Favor</h3>
+        <div class="metric-value" style="color: var(--success);">+{{ snapshot.goals_scored_seen }}</div>
+        <div class="metric-label">Goles en contra: {{ snapshot.goals_conceded_seen }}</div>
+    </div>
+
+    <!-- Fila 2: Gráficos distribuidos asimétricamente (4 y 8 columnas) -->
+    <!-- Gráfico 1: Resultados con Leyenda Detallada (bento-item-4) -->
+    <div class="chart-container glass bento-item-4" style="height: auto; min-height: 480px; display: flex; flex-direction: column; padding: 2.2rem;">
+        <h2 style="margin-bottom: 1.5rem; text-align: left; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
+            <i data-lucide="pie-chart" style="color: var(--udechile-blue); width: 1.4rem; height: 1.4rem;"></i> Resultados de Partidos
+        </h2>
+        
+        <!-- Canvas para el Doughnut de Chart.js -->
+        <div style="position: relative; height: 200px; width: 100%; margin-bottom: 1.8rem;">
+            <canvas id="resultsChart"></canvas>
+        </div>
+        
+        <!-- Leyenda Detallada con porcentajes del Hincha (UI/UX Pro Max Rules) -->
+        {% set total = snapshot.total_matches_attended if snapshot.total_matches_attended > 0 else 1 %}
+        {% set wins_pct = (snapshot.wins / total) * 100 %}
+        {% set draws_pct = (snapshot.draws / total) * 100 %}
+        {% set losses_pct = (snapshot.losses / total) * 100 %}
+        
+        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: auto; border-top: 1px solid var(--card-border); padding-top: 1.4rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem;">
+                    <span style="width: 10px; height: 10px; background: linear-gradient(135deg, #0050b3, #1890ff); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px rgba(24, 144, 255, 0.4);"></span>
+                    Victorias
+                </span>
+                <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">{{ snapshot.wins }} ({{ "%.1f"|format(wins_pct) }}%)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem;">
+                    <span style="width: 10px; height: 10px; background: linear-gradient(135deg, #94a3b8, #cbd5e1); border-radius: 50%; display: inline-block;"></span>
+                    Empates
+                </span>
+                <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">{{ snapshot.draws }} ({{ "%.1f"|format(draws_pct) }}%)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem;">
+                    <span style="width: 10px; height: 10px; background: linear-gradient(135deg, #d90429, #ff4d4f); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px rgba(217, 4, 41, 0.3);"></span>
+                    Derrotas
+                </span>
+                <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">{{ snapshot.losses }} ({{ "%.1f"|format(losses_pct) }}%)</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráfico 2: Estadios Más Visitados en Formato Lista con Barras de Progreso CSS (bento-item-8) -->
+    <div class="chart-container glass bento-item-8" style="height: auto; min-height: 480px; display: flex; flex-direction: column; padding: 2.2rem;">
+        <h2 style="margin-bottom: 2rem; text-align: left; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
+            <i data-lucide="map-pin" style="color: var(--udechile-blue); width: 1.4rem; height: 1.4rem;"></i> Recintos Más Visitados
+        </h2>
+        
+        <div style="display: flex; flex-direction: column; gap: 1.4rem; flex: 1;">
+            {% if snapshot.most_visited_stadiums %}
+                {% set max_count = snapshot.most_visited_stadiums[0].visit_count if snapshot.most_visited_stadiums|length > 0 else 1 %}
+                {% for entry in snapshot.most_visited_stadiums[:5] %} {# Mostrar los top 5 para evitar desbordes #}
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem; font-family: 'Plus Jakarta Sans', sans-serif;">{{ entry.stadium.name }}</span>
+                        <span style="background: var(--udechile-blue-glow); color: var(--udechile-blue); padding: 0.25rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; border: 1px solid rgba(0, 80, 179, 0.1);">
+                            {{ entry.visit_count }} {% if entry.visit_count == 1 %}visita{% else %}visitas{% endif %}
+                        </span>
+                    </div>
+                    {% set percentage = (entry.visit_count / max_count) * 100 %}
+                    <div style="height: 10px; width: 100%; background: rgba(15, 80, 179, 0.05); border-radius: 999px; overflow: hidden; border: 1px solid rgba(15, 80, 179, 0.03);">
+                        <div style="height: 100%; width: {{ percentage }}%; background: linear-gradient(90deg, var(--udechile-blue), var(--udechile-blue-light)); border-radius: 999px; box-shadow: 0 0 10px rgba(24, 144, 255, 0.35); transition: var(--transition-smooth);"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: var(--text-secondary); gap: 0.5rem;">
+                    <i data-lucide="info" style="width: 2rem; height: 2rem; opacity: 0.5;"></i>
+                    <p style="font-weight: 600; font-size: 0.95rem;">No has registrado asistencias aún.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Inyección segura de datos Pydantic -> JSON -> JS -->
+<script id="dashboard-data" type="application/json">
+    {{ dashboard_json | safe }}
+</script>
+<script>
+    window.dashboardData = JSON.parse(document.getElementById('dashboard-data').textContent);
+</script>
+<script src="{{ url_for('static', path='/dashboard.js') }}"></script>
+{% endblock %}

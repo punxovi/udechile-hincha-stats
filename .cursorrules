@@ -1,0 +1,87 @@
+# ==========================================
+#  UI/UX PRO MAX - DESIGN INTELLIGENCE RULES
+#  By Next Level Builders & Antigravity AI
+# ==========================================
+
+# This project uses the UI/UX Pro Max design system optimized for modern clean interfaces,
+# glassmorphism, responsive bento grids, and the official Universidad de Chile identity.
+
+# ------------------------------------------
+# 1. CORE DESIGN TOKENS (Universidad de Chile)
+# ------------------------------------------
+colors:
+  primary_brand: "#0050b3"      # Azul Chuncho Rey (High accessibility contrast)
+  secondary_brand: "#d90429"    # Rojo Escarlata Pasión (Insignia)
+  bg_general: "#f8fafc"         # Gris/Azul hielo ultra limpio (Light Mode)
+  text_primary: "#0a1931"       # Azul Noche Profundo (WCAG 15.4:1 contrast ratio)
+  text_secondary: "#475569"     # Gris slate (WCAG AA compliant)
+  text_tertiary: "#64748b"      # Gris metálico suave
+  success: "#10b981"            # Verde esmeralda (Success states)
+  success_glow: "rgba(16, 185, 129, 0.15)"
+  brand_blue_glow: "rgba(0, 80, 179, 0.15)"
+  brand_red_glow: "rgba(217, 4, 41, 0.3)"
+
+typography:
+  font_family: "'Outfit', sans-serif"
+  font_pairings: "Outfit (Headings, 800) + Outfit (Body, 400/600)"
+  base_size: "16px"
+
+# ------------------------------------------
+# 2. UI STYLES & LAYOUT SYSTEM
+# ------------------------------------------
+layout_systems:
+  bento_grid:
+    display: "grid"
+    columns: 12
+    gap: "1.8rem"
+    responsive_breakpoints:
+      tablet: "grid-column: span 6"
+      mobile: "grid-column: span 1 (100% width)"
+  
+  glassmorphism:
+    card_bg: "rgba(255, 255, 255, 0.78)"
+    card_blur: "blur(16px)"
+    border_glare:
+      background: "linear-gradient(var(--card-bg), var(--card-bg)) padding-box, linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.05) 50%, rgba(15, 80, 179, 0.08)) border-box"
+      border: "1px solid transparent !important"
+    hover_glare:
+      background: "linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)) padding-box, linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.1) 50%, rgba(0, 80, 179, 0.25)) border-box"
+
+transitions:
+  premium_curve: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)" # Hydraulic / iOS fluid feel
+
+# ------------------------------------------
+# 3. INTERACTIVE SVG ICON SYSTEM (Lucide)
+# ------------------------------------------
+icons:
+  library: "Lucide Icons (SVG)"
+  guidelines:
+    - Always use vector Lucide elements in templates: `<i data-lucide="icon-name"></i>`
+    - When adding buttons, align icons cleanly with text using `gap: 0.4rem` and flex alignment.
+    - Always trigger `lucide.createIcons()` inside async JS scripts after mutating the DOM.
+    - Animate loading/processing states using the rotating class `.lucide-spin`.
+
+# ------------------------------------------
+# 4. PYTHON / JINJA2 VALIDATION RULES (HTML Integrity)
+# ------------------------------------------
+integrity_rules:
+  jinja_attributes:
+    - NEVER put conditional operators (like `<` or `>`) directly inside inline HTML attribute values (such as `style="..."` or `class="..."`). This breaks standard HTML parser validation.
+    - ALWAYS pre-calculate style strings or colors in Jinja2 blocks BEFORE rendering the HTML tag:
+      ```jinja2
+      {% set diff_color = 'var(--text-secondary)' %}
+      {% if entry.goal_difference > 0 %}
+          {% set diff_color = 'var(--success)' %}
+      {% elif entry.goal_difference < 0 %}
+          {% set diff_color = 'var(--udechile-red)' %}
+      {% endif %}
+      <span style="color: {{ diff_color }};">
+      ```
+
+# ------------------------------------------
+# 5. CODING INSTRUCTIONS FOR AI AGENTS
+# ------------------------------------------
+ai_instructions:
+  - Adhere strictly to these design tokens and spacing guidelines for all frontend modifications.
+  - Prioritize WCAG AA accessibility contrast ratios for all visible text.
+  - Maintain clean separation of HTML structure, CSS layouts, and reactive JS logic.

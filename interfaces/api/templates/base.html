@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}U de Chile Fan Dashboard{% endblock %}</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v=2.0">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Cargar tema guardado antes de renderizar el body para evitar flash
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+</script>
+</head>
+<body>
+    <nav class="navbar glass">
+        <div class="nav-brand">
+            <span class="logo-u">U</span> de Chile Stats
+        </div>
+        <div class="nav-links" style="display: flex; align-items: center; gap: 1rem;">
+            <button id="theme-toggle" onclick="toggleTheme()" style="background: rgba(15, 80, 179, 0.05); border: 1px solid rgba(15, 80, 179, 0.1); cursor: pointer; color: var(--text-primary); display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 50%; transition: var(--transition-smooth);" title="Cambiar Tema">
+                <i data-lucide="moon" id="theme-icon" style="width: 1.2rem; height: 1.2rem;"></i>
+            </button>
+            <a href="/" style="color: var(--text-primary); text-decoration: none; font-weight: 600; font-size: 0.95rem;">Catálogo</a>
+            {% if current_user %}
+                <a href="/dashboard/{{ current_user.id }}" class="btn-primary">Mi Dashboard</a>
+                <span style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 0.25rem;">
+                    <i data-lucide="user" style="width: 1.2rem; height: 1.2rem;"></i> <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ current_user.name }}">{{ current_user.name }}</span>
+                </span>
+                <a href="/logout" style="color: var(--udechile-red); font-weight: 800; text-decoration: none; font-size: 0.9rem; transition: var(--transition-smooth);" onmouseover="this.style.textShadow='0 0 10px var(--udechile-red-glow)'" onmouseout="this.style.textShadow='none'">Salir</a>
+            {% else %}
+                <a href="/login" class="btn-primary">Ingresar</a>
+            {% endif %}
+        </div>
+    </nav>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            const icon = document.getElementById('theme-icon');
+            if (icon && savedTheme === 'blue') {
+                icon.setAttribute('data-lucide', 'sun');
+            }
+            lucide.createIcons();
+        });
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'blue' ? 'light' : 'blue';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            const icon = document.getElementById('theme-icon');
+            if (newTheme === 'blue') {
+                icon.setAttribute('data-lucide', 'sun');
+            } else {
+                icon.setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+            
+            // Si existe la función para actualizar colores de Chart.js
+            if (typeof window.updateChartTheme === 'function') {
+                window.updateChartTheme(newTheme);
+            }
+        }
+    </script>
+</body>
+</html>
