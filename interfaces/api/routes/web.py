@@ -57,11 +57,14 @@ async def login_page(request: Request):
     supabase_url = f"https://{proj_ref}.supabase.co"
     supabase_anon_key = os.getenv("SUPABASE_ANON_KEY", "")
     
-    return templates.TemplateResponse("login.html", {
-        "request": request,
-        "supabase_url": supabase_url,
-        "supabase_anon_key": supabase_anon_key
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={
+            "supabase_url": supabase_url,
+            "supabase_anon_key": supabase_anon_key
+        }
+    )
 
 @router.post("/api/auth/session")
 async def set_auth_session(payload: SessionPayload):
@@ -128,18 +131,21 @@ async def index(
     # Obtener partidos asistidos por el usuario actual logueado
     attended_matches = attendance_repo.get_attended_match_ids(current_user["id"])
     
-    return templates.TemplateResponse("index.html", {
-        "request": request, 
-        "matches": matches,
-        "years": years,
-        "selected_year": selected_year,
-        "competitions": competitions,
-        "selected_competition": competition_id or "all",
-        "sort_date": sort_date,
-        "league_tables": league_tables,
-        "attended_matches": attended_matches,
-        "current_user": current_user
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "matches": matches,
+            "years": years,
+            "selected_year": selected_year,
+            "competitions": competitions,
+            "selected_competition": competition_id or "all",
+            "sort_date": sort_date,
+            "league_tables": league_tables,
+            "attended_matches": attended_matches,
+            "current_user": current_user
+        }
+    )
 
 @router.get("/dashboard/{user_id}")
 async def dashboard(
@@ -156,13 +162,16 @@ async def dashboard(
     # Serializar directamente usando Pydantic
     dashboard_json = snapshot.model_dump_json()
     
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request, 
-        "user_id": user_id, 
-        "snapshot": snapshot,
-        "dashboard_json": dashboard_json,
-        "current_user": current_user
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="dashboard.html",
+        context={
+            "user_id": user_id, 
+            "snapshot": snapshot,
+            "dashboard_json": dashboard_json,
+            "current_user": current_user
+        }
+    )
 
 @router.post("/api/attend/{match_id}")
 async def mark_attendance(
