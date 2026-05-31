@@ -641,3 +641,177 @@ canvas {
   animation: lucide-spin-anim 1.2s linear infinite;
   display: inline-block;
 }
+
+/* --- Sistema de Optimización Móvil Pro Max --- */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.2rem 1rem !important;
+  }
+
+  .navbar {
+    padding: 1rem 1.2rem !important;
+    flex-direction: column !important;
+    gap: 0.8rem !important;
+    text-align: center;
+    border-radius: 0 0 16px 16px !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .nav-brand {
+    font-size: 1.35rem !important;
+  }
+
+  .logo-u {
+    font-size: 1.8rem !important;
+  }
+
+  .nav-links {
+    justify-content: center !important;
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    gap: 0.6rem !important;
+  }
+
+  .nav-links a {
+    margin-left: 0 !important;
+    font-size: 0.85rem !important;
+  }
+
+  .btn-primary {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  .header-section {
+    margin-bottom: 2rem !important;
+  }
+
+  .header-section h1 {
+    font-size: 1.8rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .header-section p {
+    font-size: 0.9rem !important;
+  }
+
+  .filter-panel {
+    padding: 0.8rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .filter-panel form {
+    gap: 1rem !important;
+    justify-content: space-between !important;
+  }
+
+  .filter-panel form > div {
+    flex: 1 1 calc(50% - 0.5rem) !important;
+    justify-content: space-between !important;
+  }
+
+  /* Shortcut de tablas de posiciones */
+  .tables-shortcuts {
+    padding: 0.8rem 1rem !important;
+    margin-bottom: 1.5rem !important;
+    gap: 0.6rem !important;
+  }
+
+  .tables-shortcuts span {
+    font-size: 0.85rem !important;
+    width: 100% !important;
+  }
+
+  .btn-view-table {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.8rem !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Modales Responsivos */
+  .modal-content {
+    padding: 1.5rem !important;
+    border-radius: 16px !important;
+    width: 95% !important;
+  }
+
+  .modal-close {
+    top: 1rem !important;
+    right: 1rem !important;
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1.2rem !important;
+  }
+
+  /* Dashboard Metrics */
+  .metrics-grid {
+    gap: 1rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .metric-card {
+    padding: 1.2rem !important;
+    border-radius: 16px !important;
+  }
+
+  .metric-value {
+    font-size: 2.8rem !important;
+  }
+
+  .metric-card h3 {
+    font-size: 0.8rem !important;
+    letter-spacing: 1px !important;
+  }
+
+  /* Bento Grid y Gráficos */
+  .chart-container {
+    padding: 1.2rem !important;
+    height: 340px !important;
+    border-radius: 16px !important;
+  }
+
+  .chart-container h2 {
+    font-size: 1.1rem !important;
+    margin-bottom: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hojas de partidos del catálogo */
+  .matches-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .match-card {
+    padding: 1.2rem !important;
+    border-radius: 16px !important;
+  }
+
+  .match-competition {
+    margin-bottom: 0.8rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  .match-teams {
+    font-size: 0.95rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .team {
+    font-size: 0.9rem !important;
+  }
+
+  .score {
+    min-width: 70px !important;
+    padding: 0.35rem 0.6rem !important;
+    font-size: 0.95rem !important;
+    margin: 0 0.3rem !important;
+  }
+
+  /* Ocultar nombre del usuario en teléfonos súper pequeños para ganar espacio */
+  .nav-links span {
+    display: none !important;
+  }
+}
