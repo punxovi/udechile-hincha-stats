@@ -910,6 +910,15 @@ def scrape_year_config(year: int, clear: bool, force: bool):
             text = tag.get_text(separator=" ").strip()
             text = re.sub(r'\s+', ' ', text)
             
+            # Normalizar erratas tipográficas en el separador 'v/s' (por ejemplo 'v/a', 'v/e', 'vs', etc.)
+            text = re.sub(r'\s+v/[saecdp]\s+', ' v/s ', text, flags=re.IGNORECASE)
+            text = re.sub(r'\s+vs\s+', ' v/s ', text, flags=re.IGNORECASE)
+            text = re.sub(r'\s+v\.s\.\s+', ' v/s ', text, flags=re.IGNORECASE)
+            
+            original_text = re.sub(r'\s+v/[saecdp]\s+', ' v/s ', original_text, flags=re.IGNORECASE)
+            original_text = re.sub(r'\s+vs\s+', ' v/s ', original_text, flags=re.IGNORECASE)
+            original_text = re.sub(r'\s+v\.s\.\s+', ' v/s ', original_text, flags=re.IGNORECASE)
+            
             if not text: continue
             
             # Exclusión Absoluta de Fechas Libres (Bye Weeks)
@@ -1010,7 +1019,20 @@ def scrape_year_config(year: int, clear: bool, force: bool):
                 else:
                     stadium_name = "Estadio Desconocido"
                     
-                match_id = f"chuncho_{match_date.strftime('%Y%m%d')}_{uuid.uuid4().hex[:4]}"
+                # Comprobar si ya existe un partido con la misma fecha, local y visita para evitar duplicados
+                with db.get_connection() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT id FROM matches 
+                        WHERE date = ? AND home_team = ? AND away_team = ?
+                    """, (match_date.isoformat(), home_team, away_team))
+                    existing_match = cursor.fetchone()
+                
+                if existing_match:
+                    match_id = existing_match["id"]
+                else:
+                    match_id = f"chuncho_{match_date.strftime('%Y%m%d')}_{uuid.uuid4().hex[:4]}"
+                    
                 stadium_id = f"st_{stadium_name.replace(' ', '_').replace(',', '').lower()[:20]}"
                 stadium = Stadium(id=stadium_id, name=stadium_name)
                 

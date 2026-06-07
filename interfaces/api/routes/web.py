@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 
-from infrastructure.persistence.postgres_store import PostgresDatabase, PostgresMatchRepository, PostgresAttendanceRepository, PostgresLeagueTableRepository
+from infrastructure.persistence.sqlite_store import SqliteDatabase, SqliteMatchRepository, SqliteAttendanceRepository, SqliteLeagueTableRepository
 from application.use_cases.match_use_cases import GetHistoricalMatchesUseCase, MarkAttendanceUseCase, UnmarkAttendanceUseCase
 from application.use_cases.dashboard_use_case import GenerateFanDashboardUseCase
 
@@ -17,16 +17,16 @@ template_dir = os.path.join(os.path.dirname(__file__), "..", "templates")
 templates = Jinja2Templates(directory=template_dir)
 
 # Singleton-like database access para FastAPI Depends
-db = PostgresDatabase()
+db = SqliteDatabase("udechile_stats.db")
 
 def get_match_repo():
-    return PostgresMatchRepository(db)
+    return SqliteMatchRepository(db)
 
 def get_attendance_repo():
-    return PostgresAttendanceRepository(db)
+    return SqliteAttendanceRepository(db)
 
 def get_league_table_repo():
-    return PostgresLeagueTableRepository(db)
+    return SqliteLeagueTableRepository(db)
 
 def get_current_user(request: Request) -> Optional[dict]:
     """Helper para obtener el usuario autenticado desde las cookies de sesión."""
@@ -37,44 +37,45 @@ def get_current_user(request: Request) -> Optional[dict]:
         return None
     return {"id": user_id, "email": user_email, "name": user_name or user_email}
 
-class SessionPayload(BaseModel):
-    user_id: str
+class LoginPayload(BaseModel):
     email: str
-    access_token: str
+    password: str
     name: Optional[str] = None
 
 @router.get("/login")
 async def login_page(request: Request):
-    """Renderiza la pantalla de acceso cargando las credenciales de Supabase."""
-    db_url = os.getenv("SUPABASE_DB_URL")
-    proj_ref = "bfeaevenqffrgjuduxmv"  # Referencia por defecto extraída
-    if db_url and "@db." in db_url:
-        try:
-            proj_ref = db_url.split("@db.")[1].split(".supabase")[0]
-        except Exception:
-            pass
-            
-    supabase_url = f"https://{proj_ref}.supabase.co"
-    supabase_anon_key = os.getenv("SUPABASE_ANON_KEY", "")
-    
+    """Renderiza la pantalla de acceso local."""
     return templates.TemplateResponse(
         request=request,
         name="login.html",
-        context={
-            "supabase_url": supabase_url,
-            "supabase_anon_key": supabase_anon_key
-        }
+        context={}
     )
 
-@router.post("/api/auth/session")
-async def set_auth_session(payload: SessionPayload):
-    """Establece la sesión del servidor sincronizada desde el cliente."""
+@router.post("/api/auth/login")
+async def local_login(payload: LoginPayload):
+    """Autenticación local mockeada sin Supabase."""
+    import hashlib
+    
+    email_lower = payload.email.lower()
+    prefix = payload.email.split("@")[0].lower()
+    
+    # Manejo especial para cuentas de pruebas históricas y del usuario principal
+    if email_lower == "hincha_1" or prefix == "hincha_1":
+        user_id = "hincha_1"
+        display_name = payload.name or "Hincha Uno"
+    elif prefix == "bustamantevicente12" or email_lower == "vicente_bg" or prefix == "vicente_bg":
+        user_id = "Vicente_Bg"
+        display_name = payload.name or "Vicente Bg"
+    else:
+        user_id = hashlib.md5(payload.email.encode()).hexdigest()
+        display_name = payload.name or payload.email.split('@')[0]
+    
     response = JSONResponse(content={"status": "success"})
-    # Configurar cookies httpOnly seguras con 30 días de duración
-    response.set_cookie("session_user_id", payload.user_id, max_age=86400 * 30, httponly=True, samesite="lax")
+    # Configurar cookies httpOnly
+    response.set_cookie("session_user_id", user_id, max_age=86400 * 30, httponly=True, samesite="lax")
     response.set_cookie("session_user_email", payload.email, max_age=86400 * 30, httponly=True, samesite="lax")
-    response.set_cookie("session_user_name", payload.name or "", max_age=86400 * 30, httponly=True, samesite="lax")
-    response.set_cookie("session_access_token", payload.access_token, max_age=86400 * 30, httponly=True, samesite="lax")
+    response.set_cookie("session_user_name", display_name, max_age=86400 * 30, httponly=True, samesite="lax")
+    response.set_cookie("session_access_token", "local_token", max_age=86400 * 30, httponly=True, samesite="lax")
     return response
 
 @router.get("/logout")

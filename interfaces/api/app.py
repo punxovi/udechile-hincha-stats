@@ -2,13 +2,13 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from infrastructure.persistence.postgres_store import PostgresDatabase
+from infrastructure.persistence.sqlite_store import SqliteDatabase
 from interfaces.api.routes.web import router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Inicializa la base de datos PostgreSQL de Supabase al arrancar
-    db = PostgresDatabase()
+    # Inicializa la base de datos SQLite local al arrancar
+    db = SqliteDatabase("udechile_stats.db")
     db.initialize_schema()
     yield
 

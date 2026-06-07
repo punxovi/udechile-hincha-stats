@@ -1,79 +1,59 @@
 :root {
   color-scheme: light;
-  /* Azul Chuncho e Identidad de la U */
-  --udechile-blue-dark: #0a1931;   
-  --udechile-blue: #0050b3;        
-  --udechile-blue-light: #1890ff;  
-  --udechile-blue-glow: rgba(0, 80, 179, 0.15);
   
-  /* Rojo Pasión Escarlata */
-  --udechile-red: #d90429;         
-  --udechile-red-glow: rgba(217, 4, 41, 0.3);
+  /* Colores Institucionales U de Chile (Claro) */
+  --udechile-blue-dark: #001B42;   
+  --udechile-blue: #002D72; /* Azul Rey Oficial */
+  --udechile-blue-light: #1A4B96;  
   
-  /* Colores de Fondo y Estructura (Light Glassmorphism Premium) */
-  --bg-color: #f8fafc;             
-  --bg-gradient: radial-gradient(circle at 10% 20%, rgba(24, 144, 255, 0.07), transparent 45%),
-                 radial-gradient(circle at 90% 80%, rgba(217, 4, 41, 0.05), transparent 45%),
-                 radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8), #f1f5f9);
+  --udechile-red: #C6002A; /* Rojo Oficial */
+  
+  --bg-color: #F8F9FA; /* Blanco/Gris muy suave */
+  --bg-gradient: none;
+  
+  --text-primary: #002D72; /* Azul para el texto principal */
+  --text-secondary: #4A5568;      
+  --text-tertiary: #718096;       
+  
+  --success: #276749; /* Verde oscuro suave */
+  
+  /* Estilos Brutalistas Institucionales */
+  --card-bg: #FFFFFF;
+  --card-border: #002D72; 
+  --glass-shadow: 4px 4px 0px #002D72;
+  
+  --input-bg: #FFFFFF;
+  --modal-bg: #FFFFFF;
 
-  --text-primary: #0a1931;        
-  --text-secondary: #475569;      
-  --text-tertiary: #64748b;       
-  
-  /* Colores de Estado */
-  --success: #10b981;
-  --success-glow: rgba(16, 185, 129, 0.2);
-  
-  /* Glassmorphism de Alta Gama - Fondos Claros Translúcidos */
-  --card-bg: rgba(255, 255, 255, 0.78);
-  --card-border: rgba(15, 80, 179, 0.08); 
-  --glass-shadow: 0 10px 30px rgba(15, 32, 66, 0.06), 0 1px 3px rgba(15, 32, 66, 0.02);
-  --glass-blur: blur(16px);
-  
-  /* Dinámicos Glassmorphism */
-  --glass-base-box: linear-gradient(var(--card-bg), var(--card-bg));
-  --glass-base-border: linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.05) 50%, rgba(15, 80, 179, 0.08));
-  --glass-hover-box: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9));
-  --glass-hover-border: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.1) 50%, rgba(0, 80, 179, 0.25));
-  --input-bg: #ffffff;
-  --modal-bg: rgba(255, 255, 255, 0.85);
-
-  /* Animaciones & Micro-Interacciones */
-  --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: all 0.2s ease-out;
 }
 
 [data-theme="blue"] {
-  /* Modo Azul Institucional */
+  /* Colores Institucionales U de Chile (Azul) */
   color-scheme: dark;
 
   --udechile-blue-dark: #f8fafc;
-  --udechile-blue: #40a9ff;
-  --udechile-blue-light: #69c0ff;
-  --udechile-blue-glow: rgba(64, 169, 255, 0.35);
+  --udechile-blue: #40A9FF;
+  --udechile-blue-light: #69C0FF;
   
-  --udechile-red: #fb7185;
-  --udechile-red-glow: rgba(251, 113, 133, 0.3);
+  --udechile-red: #FC8181;
 
-  --bg-color: #020a1c; /* Azul profundo casi negro */
-  --bg-gradient: radial-gradient(circle at 10% 20%, rgba(24, 144, 255, 0.12), transparent 45%),
-                 radial-gradient(circle at 90% 80%, rgba(225, 29, 72, 0.08), transparent 45%),
-                 radial-gradient(circle at 50% 50%, rgba(2, 10, 28, 0.9), #020a1c);
+  --bg-color: #001B42; /* Azul Profundo Oficial */
+  --bg-gradient: none;
   
-  --card-bg: rgba(12, 35, 80, 0.4);
-  --card-border: rgba(24, 144, 255, 0.15);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-tertiary: #64748b;
+  --text-primary: #FFFFFF;
+  --text-secondary: #E2E8F0;
+  --text-tertiary: #CBD5E1;
   
-  --glass-base-box: linear-gradient(var(--card-bg), var(--card-bg));
-  --glass-base-border: linear-gradient(135deg, rgba(64, 169, 255, 0.3), rgba(64, 169, 255, 0.05) 50%, rgba(24, 144, 255, 0.1));
-  --glass-hover-box: linear-gradient(rgba(12, 35, 80, 0.7), rgba(12, 35, 80, 0.7));
-  --glass-hover-border: linear-gradient(135deg, rgba(64, 169, 255, 0.6), rgba(64, 169, 255, 0.1) 50%, rgba(24, 144, 255, 0.3));
-  --input-bg: #08193b; /* Color sólido para evitar bug de transparencia en <select> nativos de Windows */
-  --modal-bg: rgba(2, 10, 28, 0.85);
-
-  --glass-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+  --card-bg: #002D72;
+  --card-border: #FFFFFF;
+  --glass-shadow: 4px 4px 0px #000000;
+  
+  --input-bg: #001B42;
+  --modal-bg: #002D72;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap');
 
 /* --- Estilos Generales --- */
 * {
@@ -83,36 +63,39 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   background-color: var(--bg-color);
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
-  /* Capas de luces claras para dar profundidad 3D y calidez */
-  background-image: var(--bg-gradient);
-  background-attachment: fixed;
 }
 
-/* Tipografía Premium (Headings) */
+/* Tipografía Institucional (Headings) */
 h1, h2, h3, h4, h5, h6, .nav-brand, .metric-value, .score, .auth-title, .u-giant {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Bebas Neue', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.team-name {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .container {
-  max-width: 1240px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 2.5rem 1.5rem;
 }
 
-/* --- Glassmorphism Core --- */
+/* --- Brutalist Card Core --- */
 .glass {
-  background: var(--glass-base-box) padding-box,
-              var(--glass-base-border) border-box;
-  border: 1px solid transparent !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  background: var(--card-bg);
+  border: 2px solid var(--card-border) !important;
   box-shadow: var(--glass-shadow);
-  border-radius: 20px;
+  border-radius: 0px; /* Sharp corners */
   transition: var(--transition-smooth);
 }
 
@@ -154,77 +137,67 @@ h1, h2, h3, h4, h5, h6, .nav-brand, .metric-value, .score, .auth-title, .u-giant
   border: none;
 }
 
-/* --- Navbar (Estilo Flotante y Moderno) --- */
+/* --- Navbar (Brutalista) --- */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.2rem 2.5rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-radius: 0 0 24px 24px;
+  padding: 1.5rem 2.5rem;
+  border-bottom: 4px solid var(--text-primary);
   margin-bottom: 2.5rem;
 }
 
 .nav-brand {
-  font-size: 1.6rem;
+  font-size: 2rem;
   font-weight: 800;
-  letter-spacing: -0.5px;
+  letter-spacing: 1px;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.8rem;
   color: var(--text-primary);
 }
 
 .logo-u {
   color: var(--udechile-red);
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   font-weight: 900;
-  text-shadow: 0 0 10px var(--udechile-red-glow);
-  animation: pulseLogo 3s infinite ease-in-out;
 }
 
-@keyframes pulseLogo {
-  0%, 100% { 
-    transform: scale(1); 
-    text-shadow: 0 0 10px var(--udechile-red-glow); 
-  }
-  50% { 
-    transform: scale(1.06); 
-    text-shadow: 0 0 18px rgba(217, 4, 41, 0.6); 
-  }
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .nav-links a {
-  color: var(--text-secondary);
+  color: var(--text-primary);
   text-decoration: none;
-  margin-left: 1.8rem;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 0.95rem;
+  text-transform: uppercase;
   transition: var(--transition-smooth);
 }
 
 .nav-links a:hover {
   color: var(--udechile-blue);
-  text-shadow: 0 0 10px var(--udechile-blue-glow);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--udechile-blue), #003a8c);
-  padding: 0.65rem 1.4rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px var(--udechile-blue-glow);
-  color: #fff !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-weight: 700;
+  background: var(--bg-color);
+  padding: 0.5rem 1.5rem;
+  border-radius: 999px;
+  color: var(--text-primary) !important;
+  border: 2px solid var(--text-primary);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, #1890ff, var(--udechile-blue));
-  box-shadow: 0 6px 20px rgba(0, 80, 179, 0.35);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--text-primary);
+  color: var(--bg-color) !important;
 }
 
 /* --- Secciones de Encabezado --- */
@@ -254,79 +227,61 @@ h1, h2, h3, h4, h5, h6, .nav-brand, .metric-value, .score, .auth-title, .u-giant
   font-size: 1.1rem;
 }
 
-/* --- Catálogo (Matches Grid) --- */
+/* --- Catálogo (Matches Grid Brutalista) --- */
 .matches-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .match-card {
-  padding: 2rem;
+  padding: 1.5rem;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .match-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(15, 32, 66, 0.12), 0 0 20px rgba(0, 80, 179, 0.1);
-  border-color: rgba(0, 80, 179, 0.2);
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.match-date {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 600;
+  transform: translateY(-2px);
+  box-shadow: 6px 6px 0px var(--text-primary);
+  border-color: var(--text-primary);
 }
 
 .match-competition {
-  font-weight: 700;
-  color: var(--udechile-blue);
-  margin-bottom: 1.4rem;
-  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 2px;
 }
 
-/* --- Marcadores Fix y Espaciados --- */
 .match-teams {
+  flex: 1;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.8rem;
-  font-size: 1.05rem; /* Ajustado para un look premium y más espacio */
-  font-weight: 800;
+  margin: 0 2rem;
 }
 
 .team {
-  flex: 1;
-  text-align: center;
+  font-family: 'Anton', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 1px;
   color: var(--text-primary);
-  letter-spacing: -0.2px;
-}
-
-.team-u {
-  color: var(--udechile-blue);
-  text-shadow: 0 0 12px var(--udechile-blue-glow);
-  font-weight: 900;
 }
 
 .score {
-  background: var(--input-bg);
-  padding: 0.5rem 1.2rem;
-  border-radius: 12px;
-  margin: 0 0.6rem;
-  border: 1px solid var(--card-border);
-  box-shadow: 0 4px 10px rgba(15, 32, 66, 0.04);
-  color: var(--udechile-blue);
-  font-weight: 800;
-  /* CORRECCIÓN DE ESPACIADO Y CORTE DEL MARCADOR */
-  white-space: nowrap !important; /* Prohíbe cortes de línea en números */
-  flex-shrink: 0 !important;      /* Evita compresión por nombres largos */
-  min-width: 85px !important;     /* Ancho mínimo uniforme asegurado */
-  text-align: center;
-  display: inline-block;
+  font-family: 'Anton', sans-serif;
+  font-size: 3rem;
+  color: var(--success);
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  text-align: right;
+  letter-spacing: 2px;
+}
+
+.score.loss {
+  color: var(--udechile-red);
 }
 
 /* Evitar bug de texto blanco sobre fondo blanco en Opciones de Select nativas */
@@ -335,52 +290,38 @@ select option {
   color: var(--text-primary);
 }
 
-.match-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-  border-top: 1px solid rgba(15, 80, 179, 0.06);
-  padding-top: 1.2rem;
-}
-
-.stadium {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
 .btn-attend {
-  background: rgba(0, 80, 179, 0.05);
-  border: 1px solid rgba(0, 80, 179, 0.25);
-  color: var(--udechile-blue);
-  padding: 0.55rem 1.1rem;
-  border-radius: 10px;
+  background: var(--bg-color);
+  border: 2px solid var(--text-primary);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
   cursor: pointer;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
   font-size: 0.9rem;
+  text-transform: uppercase;
   transition: var(--transition-smooth);
 }
 
 .btn-attend:hover {
-  background: var(--udechile-blue);
-  color: #ffffff;
-  box-shadow: 0 4px 12px var(--udechile-blue-glow);
-  border-color: var(--udechile-blue);
+  background: var(--text-primary);
+  color: var(--bg-color);
+  box-shadow: 3px 3px 0px var(--text-primary);
 }
 
 .btn-attend.attended {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: var(--success);
-  color: var(--success);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+  background: #10B981; /* Verde vibrante de alta visibilidad */
+  border-color: var(--text-primary);
+  color: #fff;
+  box-shadow: 3px 3px 0px var(--text-primary);
 }
 
 .btn-attend.attended:hover {
-  background: rgba(217, 4, 41, 0.08);
-  border-color: var(--udechile-red);
-  color: var(--udechile-red);
-  box-shadow: 0 0 12px var(--udechile-red-glow);
+  background: var(--udechile-red);
+  color: #fff;
+  border-color: var(--text-primary);
+  box-shadow: 1px 1px 0px var(--text-primary);
+  transform: translate(2px, 2px);
 }
 
 /* --- Panel de Filtros --- */
@@ -399,71 +340,68 @@ select:focus {
   box-shadow: 0 0 8px var(--udechile-blue-glow) !important;
 }
 
-/* --- Performance Dashboard --- */
+/* --- Performance Dashboard Brutalista --- */
 .dashboard-header {
   margin-bottom: 2.5rem;
 }
 
 .dashboard-header h1 {
-  font-size: 2.8rem;
+  font-size: 4rem;
   font-weight: 800;
-  background: linear-gradient(90deg, var(--text-primary), var(--udechile-blue));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
 }
 
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  gap: 1.5rem;
   margin-bottom: 3.5rem;
 }
 
 .metric-card {
   padding: 2rem;
-  text-align: center;
-  border-radius: 24px;
+  background: var(--text-primary);
+  color: var(--bg-color);
+  border: 2px solid var(--text-primary);
+  box-shadow: 6px 6px 0px var(--udechile-blue);
+  text-align: left;
+  border-radius: 0;
   position: relative;
   overflow: hidden;
+  transition: var(--transition-smooth);
 }
 
-.metric-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-}
-
-.metric-card.win::before { background: var(--success); }
-.metric-card.draw::before { background: var(--text-secondary); }
-.metric-card.loss::before { background: var(--udechile-red); }
+.metric-card.win { box-shadow: 6px 6px 0px var(--success); }
+.metric-card.loss { box-shadow: 6px 6px 0px var(--udechile-red); }
 
 .metric-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 15px 35px rgba(15, 32, 66, 0.08);
-  background: var(--glass-hover-box) padding-box,
-              var(--glass-hover-border) border-box;
-  border: 1px solid transparent !important;
+  transform: translateY(-2px);
+  box-shadow: 8px 8px 0px var(--udechile-blue);
 }
 
+.metric-card.win:hover { box-shadow: 8px 8px 0px var(--success); }
+.metric-card.loss:hover { box-shadow: 8px 8px 0px var(--udechile-red); }
+
 .metric-card h3 {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--bg-color);
+  opacity: 0.8;
   text-transform: uppercase;
-  letter-spacing: 1.8px;
-  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: 1px;
 }
 
 .metric-value {
-  font-size: 3.8rem;
-  font-weight: 900;
-  margin: 0.6rem 0;
-  background: linear-gradient(135deg, var(--udechile-blue), var(--udechile-blue-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  font-family: 'Anton', sans-serif;
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--bg-color);
+  line-height: 1;
+  margin-bottom: 0.5rem;
 }
 
 .metric-label {
@@ -528,16 +466,14 @@ canvas {
   flex: 1;
 }
 
-/* --- Modales de Tablas de Posiciones --- */
+/* --- Modales de Tablas de Posiciones Brutalistas --- */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(10, 25, 49, 0.5); /* Superposición suave y clara */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.85); /* Oscuro sólido */
   display: none;
   justify-content: center;
   align-items: center;
@@ -558,11 +494,11 @@ canvas {
   overflow-y: auto;
   padding: 3rem;
   position: relative;
-  animation: modalSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 25px 60px -10px rgba(15, 32, 66, 0.15);
-  border: 1px solid rgba(0, 80, 179, 0.1);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.96);
+  animation: modalSlideUp 0.3s ease-out;
+  box-shadow: 12px 12px 0px rgba(0, 0, 0, 1);
+  border: 4px solid var(--text-primary);
+  border-radius: 0;
+  background: var(--bg-color); /* FIX: Color dinámico según el tema */
   color: var(--text-primary);
 }
 
@@ -579,15 +515,16 @@ canvas {
 
 .modal-close {
   position: absolute;
-  top: 1.8rem;
-  right: 1.8rem;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  color: var(--text-secondary);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  font-size: 1.6rem;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: var(--bg-color);
+  border: 2px solid var(--text-primary);
+  color: var(--text-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 0;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -596,23 +533,27 @@ canvas {
 }
 
 .modal-close:hover {
-  background: rgba(217, 4, 41, 0.08);
-  color: var(--udechile-red);
-  border-color: rgba(217, 4, 41, 0.2);
-  box-shadow: 0 0 15px var(--udechile-red-glow);
-  transform: rotate(90deg);
+  background: var(--udechile-red);
+  color: #ffffff;
+  border-color: var(--text-primary);
+  box-shadow: 4px 4px 0px var(--text-primary);
 }
 
 .btn-view-table {
+  background: var(--bg-color);
+  border: 2px solid var(--text-primary) !important;
+  color: var(--text-primary) !important;
+  border-radius: 0;
+  box-shadow: none !important;
   transition: var(--transition-smooth);
 }
 
 .btn-view-table:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 80, 179, 0.18) !important;
+  box-shadow: 4px 4px 0px var(--udechile-blue) !important;
   border-color: var(--udechile-blue) !important;
-  background: linear-gradient(135deg, rgba(0, 80, 179, 0.1), rgba(255, 255, 255, 0.95)) !important;
-  color: var(--udechile-blue) !important;
+  background: var(--text-primary) !important;
+  color: var(--bg-color) !important;
 }
 
 /* Scrollbars Estilizadas */

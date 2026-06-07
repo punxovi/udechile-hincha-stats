@@ -122,8 +122,8 @@ class SqliteMatchRepository(MatchRepository):
         params = []
 
         if year is not None:
-            query += " AND competition LIKE ?"
-            params.append(f'%\"season\":\"{year}\"%')
+            query += " AND date LIKE ?"
+            params.append(f"{year}-%")
             
         # Nota: competition_id requeriría parsear el JSON o usar json_extract si SQLite lo soporta.
         # Por simplicidad y compatibilidad lo filtramos usando LIKE en el texto JSON.

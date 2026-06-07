@@ -3,121 +3,153 @@
 {% block title %}Dashboard - U de Chile{% endblock %}
 
 {% block content %}
-<div class="dashboard-header">
-    <h1>Dashboard de Rendimiento</h1>
-    <p>Hincha: <span class="badge">{% if current_user and current_user.id == user_id %}{{ current_user.name }}{% else %}Hincha de la U{% endif %}</span></p>
+<style>
+    /* Newspaper / Brutalist Box Score Layout */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 380px 1fr 280px;
+        gap: 2rem;
+        align-items: start;
+    }
+    
+    .box-list-row {
+        display: grid; 
+        grid-template-columns: 30px 1fr 40px; 
+        align-items: center; 
+        padding: 0.8rem 1rem; 
+        border-bottom: 1px solid rgba(0,0,0,0.15);
+    }
+    
+    .box-list-row:last-child {
+        border-bottom: none;
+    }
+
+    [data-theme="blue"] .box-list-row {
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .dotted-row {
+        display: flex; 
+        justify-content: space-between; 
+        align-items: baseline; 
+        border-bottom: 2px dotted var(--text-primary); 
+        padding-bottom: 0.2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        .right-column {
+            border-left: none !important;
+            padding-left: 0 !important;
+            border-top: 2px solid var(--text-primary);
+            padding-top: 2rem;
+        }
+    }
+</style>
+
+<!-- HEADER BOX SCORE -->
+<div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 4px solid var(--text-primary); padding-bottom: 1rem; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+        <span style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 800; letter-spacing: 2px; color: var(--text-secondary); text-transform: uppercase;">
+            HINCHA · {% if current_user and current_user.id == user_id %}{{ current_user.name }}{% else %}Anónimo{% endif %}
+        </span>
+        <h1 style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 8vw, 7rem); line-height: 0.85; letter-spacing: 2px; color: var(--text-primary); margin: 0;">
+            MI CAMPAÑA
+        </h1>
+    </div>
+    
+    <div style="display: flex; gap: 1.5rem; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-primary); margin-bottom: 0.5rem;">
+        <span>RENDIMIENTO · {{ "%.1f"|format(snapshot.win_percentage) }}%</span>
+        <span>INVICTO · {{ "%.1f"|format(snapshot.undefeated_percentage) }}%</span>
+    </div>
 </div>
 
-<div class="bento-grid">
-    <!-- Fila 1: Tarjetas de Métricas -->
-    <div class="metric-card glass win bento-item-3">
-        <div style="display: flex; justify-content: center; margin-bottom: 0.5rem; color: var(--success); opacity: 0.8;">
-            <i data-lucide="trending-up" style="width: 1.5rem; height: 1.5rem;"></i>
-        </div>
-        <h3>Rendimiento</h3>
-        <div class="metric-value">{{ "%.1f"|format(snapshot.win_percentage) }}%</div>
-        <div class="metric-label">Puntos obtenidos</div>
-    </div>
+<!-- MAIN GRID (3 Columns like the image) -->
+<div class="dashboard-grid">
     
-    <div class="metric-card glass draw bento-item-3">
-        <div style="display: flex; justify-content: center; margin-bottom: 0.5rem; color: var(--text-secondary); opacity: 0.8;">
-            <i data-lucide="shield" style="width: 1.5rem; height: 1.5rem;"></i>
+    <!-- LEFT COLUMN: STADIUMS -->
+    <div style="border: 2px solid var(--text-primary); background: var(--bg-color);">
+        <div style="padding: 1rem; border-bottom: 2px solid var(--text-primary); text-align: center; background: rgba(0,0,0,0.03);">
+            <span style="font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--text-primary);">RECINTOS VISITADOS</span>
         </div>
-        <h3>Invicto</h3>
-        <div class="metric-value">{{ "%.1f"|format(snapshot.undefeated_percentage) }}%</div>
-        <div class="metric-label">Partidos sin perder</div>
-    </div>
-
-    <div class="metric-card glass win bento-item-3">
-        <div style="display: flex; justify-content: center; margin-bottom: 0.5rem; color: var(--udechile-blue); opacity: 0.8;">
-            <i data-lucide="ticket" style="width: 1.5rem; height: 1.5rem;"></i>
-        </div>
-        <h3>Partidos Vistos</h3>
-        <div class="metric-value">{{ snapshot.total_matches_attended }}</div>
-        <div class="metric-label">Asistencia total</div>
-    </div>
-    
-    <div class="metric-card glass loss bento-item-3">
-        <div style="display: flex; justify-content: center; margin-bottom: 0.5rem; color: var(--text-tertiary); opacity: 0.8;">
-            <i data-lucide="goal" style="width: 1.5rem; height: 1.5rem;"></i>
-        </div>
-        <h3>Goles a Favor</h3>
-        <div class="metric-value" style="color: var(--success);">+{{ snapshot.goals_scored_seen }}</div>
-        <div class="metric-label">Goles en contra: {{ snapshot.goals_conceded_seen }}</div>
-    </div>
-
-    <!-- Fila 2: Gráficos distribuidos asimétricamente (4 y 8 columnas) -->
-    <!-- Gráfico 1: Resultados con Leyenda Detallada (bento-item-4) -->
-    <div class="chart-container glass bento-item-4" style="height: auto; min-height: 480px; display: flex; flex-direction: column; padding: 2.2rem;">
-        <h2 style="margin-bottom: 1.5rem; text-align: left; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
-            <i data-lucide="pie-chart" style="color: var(--udechile-blue); width: 1.4rem; height: 1.4rem;"></i> Resultados de Partidos
-        </h2>
-        
-        <!-- Canvas para el Doughnut de Chart.js -->
-        <div style="position: relative; height: 200px; width: 100%; margin-bottom: 1.8rem;">
-            <canvas id="resultsChart"></canvas>
-        </div>
-        
-        <!-- Leyenda Detallada con porcentajes del Hincha (UI/UX Pro Max Rules) -->
-        {% set total = snapshot.total_matches_attended if snapshot.total_matches_attended > 0 else 1 %}
-        {% set wins_pct = (snapshot.wins / total) * 100 %}
-        {% set draws_pct = (snapshot.draws / total) * 100 %}
-        {% set losses_pct = (snapshot.losses / total) * 100 %}
-        
-        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: auto; border-top: 1px solid var(--card-border); padding-top: 1.4rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem;">
-                    <span style="width: 10px; height: 10px; background: linear-gradient(135deg, #0050b3, #1890ff); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px rgba(24, 144, 255, 0.4);"></span>
-                    Victorias
-                </span>
-                <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">{{ snapshot.wins }} ({{ "%.1f"|format(wins_pct) }}%)</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem;">
-                    <span style="width: 10px; height: 10px; background: linear-gradient(135deg, #94a3b8, #cbd5e1); border-radius: 50%; display: inline-block;"></span>
-                    Empates
-                </span>
-                <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">{{ snapshot.draws }} ({{ "%.1f"|format(draws_pct) }}%)</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem;">
-                    <span style="width: 10px; height: 10px; background: linear-gradient(135deg, #d90429, #ff4d4f); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px rgba(217, 4, 41, 0.3);"></span>
-                    Derrotas
-                </span>
-                <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">{{ snapshot.losses }} ({{ "%.1f"|format(losses_pct) }}%)</span>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Gráfico 2: Estadios Más Visitados en Formato Lista con Barras de Progreso CSS (bento-item-8) -->
-    <div class="chart-container glass bento-item-8" style="height: auto; min-height: 480px; display: flex; flex-direction: column; padding: 2.2rem;">
-        <h2 style="margin-bottom: 2rem; text-align: left; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
-            <i data-lucide="map-pin" style="color: var(--udechile-blue); width: 1.4rem; height: 1.4rem;"></i> Recintos Más Visitados
-        </h2>
-        
-        <div style="display: flex; flex-direction: column; gap: 1.4rem; flex: 1;">
+        <div style="display: flex; flex-direction: column;">
             {% if snapshot.most_visited_stadiums %}
-                {% set max_count = snapshot.most_visited_stadiums[0].visit_count if snapshot.most_visited_stadiums|length > 0 else 1 %}
-                {% for entry in snapshot.most_visited_stadiums[:5] %} {# Mostrar los top 5 para evitar desbordes #}
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem; font-family: 'Plus Jakarta Sans', sans-serif;">{{ entry.stadium.name }}</span>
-                        <span style="background: var(--udechile-blue-glow); color: var(--udechile-blue); padding: 0.25rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; border: 1px solid rgba(0, 80, 179, 0.1);">
-                            {{ entry.visit_count }} {% if entry.visit_count == 1 %}visita{% else %}visitas{% endif %}
-                        </span>
-                    </div>
-                    {% set percentage = (entry.visit_count / max_count) * 100 %}
-                    <div style="height: 10px; width: 100%; background: rgba(15, 80, 179, 0.05); border-radius: 999px; overflow: hidden; border: 1px solid rgba(15, 80, 179, 0.03);">
-                        <div style="height: 100%; width: {{ percentage }}%; background: linear-gradient(90deg, var(--udechile-blue), var(--udechile-blue-light)); border-radius: 999px; box-shadow: 0 0 10px rgba(24, 144, 255, 0.35); transition: var(--transition-smooth);"></div>
-                    </div>
+                {% for entry in snapshot.most_visited_stadiums[:10] %}
+                <div class="box-list-row">
+                    <span style="font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 800; color: var(--text-secondary);">#{{ loop.index }}</span>
+                    <span style="font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; padding-right: 0.5rem; color: var(--text-primary); line-height: 1.3; word-break: break-word;">{{ entry.stadium.name }}</span>
+                    <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; text-align: right; color: var(--text-primary);">{{ entry.visit_count }}</span>
                 </div>
                 {% endfor %}
             {% else %}
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: var(--text-secondary); gap: 0.5rem;">
-                    <i data-lucide="info" style="width: 2rem; height: 2rem; opacity: 0.5;"></i>
-                    <p style="font-weight: 600; font-size: 0.95rem;">No has registrado asistencias aún.</p>
-                </div>
+                <div style="padding: 2rem 1rem; text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary);">SIN REGISTROS</div>
             {% endif %}
+        </div>
+    </div>
+
+    <!-- MIDDLE COLUMN: THE FIELD / CHART -->
+    <div style="border: 2px solid var(--text-primary); background: rgba(15, 80, 179, 0.03); height: 100%; min-height: 400px; display: flex; flex-direction: column; position: relative;">
+        <div style="display: flex; justify-content: space-between; padding: 0.8rem 1rem; border-bottom: 1px dashed var(--text-primary); font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary);">
+            <span>ANÁLISIS DE EFECTIVIDAD</span>
+            <span>U DE CHILE STATS</span>
+        </div>
+        
+        <!-- Center Chart -->
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="resultsChart"></canvas>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; padding: 0.8rem 1rem; border-top: 1px dashed var(--text-primary); font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary);">
+            <span>TOTAL ASISTENCIAS</span>
+            <span style="color: var(--text-primary); font-size: 0.8rem;">{{ snapshot.total_matches_attended }}</span>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: BOX SCORE -->
+    <div class="right-column" style="border-left: 2px solid var(--text-primary); padding-left: 2rem; height: 100%;">
+        <div style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 1.5rem; color: var(--text-secondary);">
+            BOX SCORE · RESUMEN
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 3rem;">
+            <div class="dotted-row">
+                <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">VICTORIAS</span>
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--success);">{{ snapshot.wins }}</span>
+            </div>
+            <div class="dotted-row">
+                <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">EMPATES</span>
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--text-secondary);">{{ snapshot.draws }}</span>
+            </div>
+            <div class="dotted-row">
+                <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">DERROTAS</span>
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--udechile-red);">{{ snapshot.losses }}</span>
+            </div>
+        </div>
+
+        <div style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 1.5rem; color: var(--text-secondary);">
+            BOX SCORE · GOLES
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="dotted-row">
+                <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">A FAVOR</span>
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--udechile-blue);">{{ snapshot.goals_scored_seen }}</span>
+            </div>
+            <div class="dotted-row">
+                <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">EN CONTRA</span>
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--text-primary);">{{ snapshot.goals_conceded_seen }}</span>
+            </div>
+            <div class="dotted-row" style="margin-top: 1rem; border-bottom: 4px solid var(--text-primary);">
+                <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">DIFERENCIA</span>
+                {% set gd = snapshot.goals_scored_seen - snapshot.goals_conceded_seen %}
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: {% if gd > 0 %}var(--success){% elif gd < 0 %}var(--udechile-red){% else %}var(--text-primary){% endif %};">
+                    {% if gd > 0 %}+{% endif %}{{ gd }}
+                </span>
+            </div>
         </div>
     </div>
 </div>

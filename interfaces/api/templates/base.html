@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}U de Chile Fan Dashboard{% endblock %}</title>
-    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <!-- Main CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v=2.0">
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v=3.0">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -21,23 +21,23 @@
 </script>
 </head>
 <body>
-    <nav class="navbar glass">
+    <nav class="navbar">
         <div class="nav-brand">
-            <span class="logo-u">U</span> de Chile Stats
+            <span class="logo-u">U</span> <span style="font-family: 'Bebas Neue', sans-serif;">DE CHILE STATS</span>
         </div>
         <div class="nav-links" style="display: flex; align-items: center; gap: 1rem;">
-            <button id="theme-toggle" onclick="toggleTheme()" style="background: rgba(15, 80, 179, 0.05); border: 1px solid rgba(15, 80, 179, 0.1); cursor: pointer; color: var(--text-primary); display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 50%; transition: var(--transition-smooth);" title="Cambiar Tema">
+            <button id="theme-toggle" onclick="toggleTheme()" style="background: var(--bg-color); border: 2px solid var(--text-primary); cursor: pointer; color: var(--text-primary); display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 999px; transition: var(--transition-smooth);" title="Cambiar Tema">
                 <i data-lucide="moon" id="theme-icon" style="width: 1.2rem; height: 1.2rem;"></i>
             </button>
-            <a href="/" style="color: var(--text-primary); text-decoration: none; font-weight: 600; font-size: 0.95rem;">Catálogo</a>
+            <a href="/" style="color: var(--text-primary); text-decoration: none; font-weight: 800; font-family: 'Montserrat', sans-serif;">CATÁLOGO</a>
             {% if current_user %}
-                <a href="/dashboard/{{ current_user.id }}" class="btn-primary">Mi Dashboard</a>
-                <span style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 0.25rem;">
-                    <i data-lucide="user" style="width: 1.2rem; height: 1.2rem;"></i> <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ current_user.name }}">{{ current_user.name }}</span>
+                <a href="/dashboard/{{ current_user.id }}" class="btn-primary">MI CAMPAÑA</a>
+                <span style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 800; font-family: 'Montserrat', sans-serif; display: flex; align-items: center; gap: 0.25rem;">
+                    <i data-lucide="user" style="width: 1.2rem; height: 1.2rem;"></i> <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: uppercase;" title="{{ current_user.name }}">{{ current_user.name }}</span>
                 </span>
-                <a href="/logout" style="color: var(--udechile-red); font-weight: 800; text-decoration: none; font-size: 0.9rem; transition: var(--transition-smooth);" onmouseover="this.style.textShadow='0 0 10px var(--udechile-red-glow)'" onmouseout="this.style.textShadow='none'">Salir</a>
+                <a href="/logout" style="color: var(--udechile-red); font-weight: 800; font-family: 'Montserrat', sans-serif; text-decoration: none; font-size: 0.9rem;">SALIR</a>
             {% else %}
-                <a href="/login" class="btn-primary">Ingresar</a>
+                <a href="/login" class="btn-primary">INGRESAR</a>
             {% endif %}
         </div>
     </nav>
