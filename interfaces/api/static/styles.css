@@ -29,28 +29,28 @@
 }
 
 [data-theme="blue"] {
-  /* Colores Institucionales U de Chile (Azul) */
+  /* Colores Institucionales U de Chile (Azul Suave Premium) */
   color-scheme: dark;
 
-  --udechile-blue-dark: #f8fafc;
-  --udechile-blue: #40A9FF;
-  --udechile-blue-light: #69C0FF;
+  --udechile-blue-dark: #F8FAFC;
+  --udechile-blue: #60A5FA; /* Azul institucional suavizado */
+  --udechile-blue-light: #93C5FD;
   
-  --udechile-red: #FC8181;
+  --udechile-red: #F87171; /* Rojo desaturado agradable */
 
-  --bg-color: #001B42; /* Azul Profundo Oficial */
+  --bg-color: #0F172A; /* Azul pizarra oscuro suave (Slate-900) */
   --bg-gradient: none;
   
-  --text-primary: #FFFFFF;
-  --text-secondary: #E2E8F0;
-  --text-tertiary: #CBD5E1;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8; /* Gris azulado suave (Slate-400) */
+  --text-tertiary: #64748B;  /* Slate-500 */
   
-  --card-bg: #002D72;
-  --card-border: #FFFFFF;
-  --glass-shadow: 4px 4px 0px #000000;
+  --card-bg: #1E293B; /* Slate-800 */
+  --card-border: #475569; /* Slate-600 para un contraste brutalista no agresivo */
+  --glass-shadow: 4px 4px 0px #020617; /* Sombra negra profunda */
   
-  --input-bg: #001B42;
-  --modal-bg: #002D72;
+  --input-bg: #0F172A;
+  --modal-bg: #1E293B;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap');
