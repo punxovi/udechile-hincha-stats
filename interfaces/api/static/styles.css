@@ -29,28 +29,28 @@
 }
 
 [data-theme="blue"] {
-  /* Colores Institucionales U de Chile (Azul Suave y Pastel) */
-  color-scheme: dark;
+  /* Colores Institucionales U de Chile (Azul Rey Suave y Pastel Claro) */
+  color-scheme: light;
 
-  --udechile-blue-dark: #F8FAFC;
-  --udechile-blue: #60A5FA; /* Azul cielo pastel de la U */
-  --udechile-blue-light: #BFDBFE;
+  --udechile-blue-dark: #0F172A;
+  --udechile-blue: #2563EB; /* Azul de la U */
+  --udechile-blue-light: #3B82F6;
   
-  --udechile-red: #F87171; /* Rojo pastel */
+  --udechile-red: #EF4444; /* Rojo */
 
-  --bg-color: #152238; /* Azul marino suave */
+  --bg-color: #BFDBFE; /* Azul rey suave y pastel claro (Tailwind Blue-200) */
   --bg-gradient: none;
   
-  --text-primary: #FFFFFF;
-  --text-secondary: #93C5FD; /* Azul pastel muy claro */
-  --text-tertiary: #60A5FA;  /* Azul cielo */
+  --text-primary: #1E3A8A; /* Azul rey oscuro para el texto principal */
+  --text-secondary: #2563EB; /* Azul de contraste */
+  --text-tertiary: #475569;  /* Slate-600 */
   
-  --card-bg: #1F305E; /* Azul cercano al de la U, pero suavizado y pastelizado */
-  --card-border: #3B82F6; /* Azul real suave que define los bordes */
-  --glass-shadow: 4px 4px 0px #0B132B; /* Sombra azul marino oscuro */
+  --card-bg: #FFFFFF; /* Tarjetas blancas de alto impacto editorial */
+  --card-border: #1E3A8A; /* Bordes gruesos azul rey oscuro */
+  --glass-shadow: 4px 4px 0px #1E3A8A; /* Sombra brutalista azul rey oscuro */
   
-  --input-bg: #152238;
-  --modal-bg: #1F305E;
+  --input-bg: #FFFFFF;
+  --modal-bg: #FFFFFF;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap');
