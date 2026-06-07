@@ -29,28 +29,28 @@
 }
 
 [data-theme="blue"] {
-  /* Colores Institucionales U de Chile (Azul Suave Premium) */
+  /* Colores Institucionales U de Chile (Azul Suave y Pastel) */
   color-scheme: dark;
 
   --udechile-blue-dark: #F8FAFC;
-  --udechile-blue: #60A5FA; /* Azul institucional suavizado */
-  --udechile-blue-light: #93C5FD;
+  --udechile-blue: #60A5FA; /* Azul cielo pastel de la U */
+  --udechile-blue-light: #BFDBFE;
   
-  --udechile-red: #F87171; /* Rojo desaturado agradable */
+  --udechile-red: #F87171; /* Rojo pastel */
 
-  --bg-color: #0F172A; /* Azul pizarra oscuro suave (Slate-900) */
+  --bg-color: #152238; /* Azul marino suave */
   --bg-gradient: none;
   
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8; /* Gris azulado suave (Slate-400) */
-  --text-tertiary: #64748B;  /* Slate-500 */
+  --text-primary: #FFFFFF;
+  --text-secondary: #93C5FD; /* Azul pastel muy claro */
+  --text-tertiary: #60A5FA;  /* Azul cielo */
   
-  --card-bg: #1E293B; /* Slate-800 */
-  --card-border: #475569; /* Slate-600 para un contraste brutalista no agresivo */
-  --glass-shadow: 4px 4px 0px #020617; /* Sombra negra profunda */
+  --card-bg: #1F305E; /* Azul cercano al de la U, pero suavizado y pastelizado */
+  --card-border: #3B82F6; /* Azul real suave que define los bordes */
+  --glass-shadow: 4px 4px 0px #0B132B; /* Sombra azul marino oscuro */
   
-  --input-bg: #0F172A;
-  --modal-bg: #1E293B;
+  --input-bg: #152238;
+  --modal-bg: #1F305E;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap');
