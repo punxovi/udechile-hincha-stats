@@ -183,10 +183,15 @@ class GenerateFanDashboardUseCase:
         
         for m in matches:
             opp_lower = m.opponent.lower()
+            # 3.1 Detección proactiva de Colo-Colo
             if "colo" in opp_lower:
                 colo_colo_matches.append(m)
-            elif "catol" in opp_lower:
-                uc_matches.append(m)
+            # 3.2 Detección proactiva de la UC (tolerante a caracteres rotos de codificación como 'Catlica')
+            # Excluimos rivales internacionales con 'cat' (ej: U. Católica de Ecuador)
+            elif "cat" in opp_lower:
+                is_foreign = any(term in opp_lower for term in ["ecu", "quito", "boliv", "ecuador", "colomb", "chicago"])
+                if not is_foreign:
+                    uc_matches.append(m)
                 
         combined_classics = colo_colo_matches + uc_matches
         
