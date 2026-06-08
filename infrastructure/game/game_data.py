@@ -538,9 +538,9 @@ PLANTELES_HISTORICOS = {
             {"name": "Marcelo Morales", "pos": "DEF", "rating": 78},
             {"name": "Charles Aránguiz", "pos": "MED", "rating": 79},
             {"name": "Marcelo Díaz", "pos": "MED", "rating": 77},
-            {"name": "Matías Sepúlveda", "pos": "MED", "rating": 76},
+            {"name": "Lucas Assadi", "pos": "MED", "rating": 80},
             {"name": "Maximiliano Guerrero", "pos": "DEL", "rating": 78},
-            {"name": "Leandro Fernández", "pos": "DEL", "rating": 81},
+            {"name": "Leandro Fernández", "pos": "DEL", "rating": 76},
             {"name": "Cristian Palacios", "pos": "DEL", "rating": 78}
         ]
     },
