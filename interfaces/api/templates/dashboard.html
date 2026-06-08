@@ -17,15 +17,12 @@
         grid-template-columns: 30px 1fr 40px; 
         align-items: center; 
         padding: 0.8rem 1rem; 
-        border-bottom: 1px solid rgba(0,0,0,0.15);
+        border-bottom: 1px solid var(--card-border);
+        opacity: 0.9;
     }
     
     .box-list-row:last-child {
         border-bottom: none;
-    }
-
-    [data-theme="blue"] .box-list-row {
-        border-bottom: 1px solid rgba(255,255,255,0.15);
     }
 
     .dotted-row {
@@ -34,6 +31,61 @@
         align-items: baseline; 
         border-bottom: 2px dotted var(--text-primary); 
         padding-bottom: 0.2rem;
+    }
+
+    /* Pestañas Brutalistas */
+    .tab-btn {
+        background: var(--card-bg);
+        border: 2px solid var(--text-primary);
+        color: var(--text-primary);
+        padding: 0.6rem 1.4rem;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        cursor: pointer;
+        box-shadow: 3px 3px 0px var(--text-primary);
+        transition: all 0.1s ease;
+        outline: none;
+    }
+    
+    .tab-btn:hover {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        box-shadow: 0px 0px 0px var(--text-primary);
+        transform: translate(3px, 3px);
+    }
+    
+    .tab-btn.active {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        box-shadow: none;
+        transform: none;
+    }
+
+    .select-tab-container {
+        display: flex;
+        align-items: center;
+        border: 2px solid var(--text-primary);
+        background: var(--card-bg);
+        box-shadow: 3px 3px 0px var(--text-primary);
+        transition: all 0.1s ease;
+    }
+
+    .select-tab-container:hover {
+        box-shadow: 0px 0px 0px var(--text-primary);
+        transform: translate(3px, 3px);
+    }
+
+    .select-tab-container.active {
+        box-shadow: none;
+        transform: none;
+        background: var(--text-primary);
+    }
+    
+    .select-tab-container.active select {
+        background: var(--text-primary);
+        color: var(--bg-color);
     }
 
     @media (max-width: 1024px) {
@@ -49,6 +101,9 @@
     }
 </style>
 
+<!-- Librerías de exportación e iconos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <!-- HEADER BOX SCORE -->
 <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 4px solid var(--text-primary); padding-bottom: 1rem; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
     <div style="display: flex; flex-direction: column; gap: 0.2rem;">
@@ -61,9 +116,30 @@
     </div>
     
     <div style="display: flex; gap: 1.5rem; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-primary); margin-bottom: 0.5rem;">
-        <span>RENDIMIENTO · {{ "%.1f"|format(snapshot.win_percentage) }}%</span>
-        <span>INVICTO · {{ "%.1f"|format(snapshot.undefeated_percentage) }}%</span>
+        <span id="header-win-percentage">RENDIMIENTO · {{ "%.1f"|format(snapshot.win_percentage) }}%</span>
+        <span id="header-undefeated-percentage">INVICTO · {{ "%.1f"|format(snapshot.undefeated_percentage) }}%</span>
     </div>
+</div>
+
+<!-- TABS / FILTROS BRUTALISTAS -->
+<div style="display: flex; gap: 1rem; border-bottom: 2px solid var(--text-primary); padding-bottom: 1.5rem; margin-bottom: 2.5rem; flex-wrap: wrap; align-items: center;">
+    <button class="tab-btn active" id="tab-general" onclick="switchTab('general')">RENDIMIENTO GENERAL</button>
+    
+    <div class="select-tab-container" id="tab-container-year">
+        <button class="tab-btn" style="border: none; box-shadow: none; transform: none; background: transparent; color: inherit;" onclick="switchTab('year')">POR AÑO</button>
+        <select id="dashboard-year-select" onchange="changeDashboardYear()" style="background: transparent; color: inherit; border: none; border-left: 2px solid var(--text-primary); padding: 0.5rem; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.9rem; cursor: pointer; outline: none; height: 100%;">
+            {% for y in enriched_data.by_year.keys() | sort(reverse=True) %}
+                <option value="{{ y }}" style="background: var(--card-bg); color: var(--text-primary);">{{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <button class="tab-btn" id="tab-classics" onclick="switchTab('classics')">CLÁSICOS (UC & COLO COLO)</button>
+    
+    <button id="btn-export-dashboard" class="tab-btn" style="margin-left: auto; background: var(--udechile-red); color: white; display: flex; align-items: center; gap: 0.5rem;" onclick="exportDashboardImage()">
+        <i data-lucide="download" style="width: 1.2rem; height: 1.2rem;"></i>
+        EXPORTAR FICHA
+    </button>
 </div>
 
 <!-- MAIN GRID (3 Columns like the image) -->
@@ -74,7 +150,7 @@
         <div style="padding: 1rem; border-bottom: 2px solid var(--text-primary); text-align: center; background: rgba(0,0,0,0.03);">
             <span style="font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--text-primary);">RECINTOS VISITADOS</span>
         </div>
-        <div style="display: flex; flex-direction: column;">
+        <div id="stadiums-list-container" style="display: flex; flex-direction: column;">
             {% if snapshot.most_visited_stadiums %}
                 {% for entry in snapshot.most_visited_stadiums[:10] %}
                 <div class="box-list-row">
@@ -105,7 +181,7 @@
 
         <div style="display: flex; justify-content: space-between; padding: 0.8rem 1rem; border-top: 1px dashed var(--text-primary); font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary);">
             <span>TOTAL ASISTENCIAS</span>
-            <span style="color: var(--text-primary); font-size: 0.8rem;">{{ snapshot.total_matches_attended }}</span>
+            <span id="stats-total-attended" style="color: var(--text-primary); font-size: 0.8rem; font-weight: 800;">{{ snapshot.total_matches_attended }}</span>
         </div>
     </div>
 
@@ -118,15 +194,15 @@
         <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 3rem;">
             <div class="dotted-row">
                 <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">VICTORIAS</span>
-                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--success);">{{ snapshot.wins }}</span>
+                <span id="stats-wins" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--success);">{{ snapshot.wins }}</span>
             </div>
             <div class="dotted-row">
                 <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">EMPATES</span>
-                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--text-secondary);">{{ snapshot.draws }}</span>
+                <span id="stats-draws" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--text-secondary);">{{ snapshot.draws }}</span>
             </div>
             <div class="dotted-row">
                 <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">DERROTAS</span>
-                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--udechile-red);">{{ snapshot.losses }}</span>
+                <span id="stats-losses" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--udechile-red);">{{ snapshot.losses }}</span>
             </div>
         </div>
 
@@ -137,20 +213,163 @@
         <div style="display: flex; flex-direction: column; gap: 1rem;">
             <div class="dotted-row">
                 <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">A FAVOR</span>
-                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--udechile-blue);">{{ snapshot.goals_scored_seen }}</span>
+                <span id="stats-gf" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--udechile-blue);">{{ snapshot.goals_scored_seen }}</span>
             </div>
             <div class="dotted-row">
                 <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">EN CONTRA</span>
-                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--text-primary);">{{ snapshot.goals_conceded_seen }}</span>
+                <span id="stats-gc" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--text-primary);">{{ snapshot.goals_conceded_seen }}</span>
             </div>
             <div class="dotted-row" style="margin-top: 1rem; border-bottom: 4px solid var(--text-primary);">
                 <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary);">DIFERENCIA</span>
                 {% set gd = snapshot.goals_scored_seen - snapshot.goals_conceded_seen %}
-                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: {% if gd > 0 %}var(--success){% elif gd < 0 %}var(--udechile-red){% else %}var(--text-primary){% endif %};">
+                <span id="stats-gd" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: {% if gd > 0 %}var(--success){% elif gd < 0 %}var(--udechile-red){% else %}var(--text-primary){% endif %};">
                     {% if gd > 0 %}+{% endif %}{{ gd }}
                 </span>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- CLASSICS BREAKDOWN (Visible solo en pestaña Clásicos) -->
+<div id="classics-breakdown-section" style="display: none; margin-top: 3.5rem; border-top: 4px solid var(--text-primary); padding-top: 2rem; padding-bottom: 2rem;">
+    <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: 2px; color: var(--text-primary); margin-bottom: 2rem; text-transform: uppercase;">
+        DESGLOSE DE CLÁSICOS INDIVIDUALES
+    </h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem;">
+        
+        <!-- VS COLO COLO -->
+        <div style="border: 2px solid var(--text-primary); background: var(--card-bg); padding: 1.5rem; box-shadow: 4px 4px 0px var(--text-primary);">
+            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid var(--text-primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem; align-items: baseline;">
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--text-primary); letter-spacing: 1px;">VS COLO COLO</span>
+                <span id="cc-perf-badge" style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.9rem; color: var(--udechile-red); text-transform: uppercase; letter-spacing: 1px;">REND: 0%</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.8rem; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800;">
+                <div class="dotted-row">
+                    <span>PARTIDOS EN EL TABLÓN</span>
+                    <span id="cc-total" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--text-primary);">0</span>
+                </div>
+                <div class="dotted-row">
+                    <span>VICTORIAS</span>
+                    <span id="cc-wins" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--success);">0</span>
+                </div>
+                <div class="dotted-row">
+                    <span>EMPATES</span>
+                    <span id="cc-draws" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--text-secondary);">0</span>
+                </div>
+                <div class="dotted-row">
+                    <span>DERROTAS</span>
+                    <span id="cc-losses" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--udechile-red);">0</span>
+                </div>
+                <div class="dotted-row" style="margin-top: 0.5rem;">
+                    <span>GOLES VISTOS (A / C)</span>
+                    <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--text-primary);">
+                        <span id="cc-gf" style="color: var(--udechile-blue);">0</span> - <span id="cc-gc">0</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- VS UNIVERSIDAD CATÓLICA -->
+        <div style="border: 2px solid var(--text-primary); background: var(--card-bg); padding: 1.5rem; box-shadow: 4px 4px 0px var(--text-primary);">
+            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid var(--text-primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem; align-items: baseline;">
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--text-primary); letter-spacing: 1px;">VS U. CATÓLICA</span>
+                <span id="uc-perf-badge" style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.9rem; color: var(--udechile-blue); text-transform: uppercase; letter-spacing: 1px;">REND: 0%</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.8rem; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800;">
+                <div class="dotted-row">
+                    <span>PARTIDOS EN EL TABLÓN</span>
+                    <span id="uc-total" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--text-primary);">0</span>
+                </div>
+                <div class="dotted-row">
+                    <span>VICTORIAS</span>
+                    <span id="uc-wins" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--success);">0</span>
+                </div>
+                <div class="dotted-row">
+                    <span>EMPATES</span>
+                    <span id="uc-draws" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--text-secondary);">0</span>
+                </div>
+                <div class="dotted-row">
+                    <span>DERROTAS</span>
+                    <span id="uc-losses" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--udechile-red);">0</span>
+                </div>
+                <div class="dotted-row" style="margin-top: 0.5rem;">
+                    <span>GOLES VISTOS (A / C)</span>
+                    <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--text-primary);">
+                        <span id="uc-gf" style="color: var(--udechile-blue);">0</span> - <span id="uc-gc">0</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<!-- FICHA BRUTALISTA PARA COMPARTIR (OCULTA EN EL DOM) -->
+<div id="share-card-template" style="position: absolute; left: -9999px; top: -9999px; width: 800px; height: 500px; background: #001B42; color: #FFFFFF; border: 6px double #FFFFFF; padding: 2rem; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; font-family: 'Montserrat', sans-serif;">
+    <!-- Encabezado -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #FFFFFF; padding-bottom: 1rem;">
+        <div>
+            <h1 style="font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; margin: 0; line-height: 0.9; letter-spacing: 2px;">CAMPAÑA DE HINCHA</h1>
+            <span style="font-size: 0.85rem; font-weight: 800; letter-spacing: 2px; color: #69C0FF; text-transform: uppercase;">U DE CHILE STATS</span>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 0.75rem; font-weight: 800; color: #E2E8F0; letter-spacing: 1px; text-transform: uppercase;">HINCHA</div>
+            <div id="share-hincha-name" style="font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; margin: 0; color: #FC8181; letter-spacing: 1px;">
+                {% if current_user and current_user.id == user_id %}{{ current_user.name }}{% else %}Vicente Bg{% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contenido Principal -->
+    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; margin: 1.5rem 0; flex: 1; align-items: center;">
+        <!-- Lado izquierdo: Métricas globales -->
+        <div style="display: flex; flex-direction: column; gap: 0.8rem; justify-content: center;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.4); padding-bottom: 0.2rem;">
+                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">FILTRO ACTIVO</span>
+                <span id="share-filter-title" style="font-weight: 800; font-size: 0.85rem; color: #69C0FF; text-transform: uppercase; letter-spacing: 1px;">RENDIMIENTO GENERAL</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.4); padding-bottom: 0.2rem;">
+                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">PARTIDOS EN EL TABLÓN</span>
+                <span id="share-total-attended" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1;">0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.4); padding-bottom: 0.2rem;">
+                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">RENDIMIENTO</span>
+                <span id="share-win-percentage" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1; color: #69C0FF;">0.0%</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.4); padding-bottom: 0.2rem;">
+                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">INVICTO</span>
+                <span id="share-undefeated-percentage" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1; color: #276749;">0.0%</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.4); padding-bottom: 0.2rem;">
+                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">RECORD (V - E - D)</span>
+                <span id="share-record" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1;">0 - 0 - 0</span>
+            </div>
+        </div>
+        
+        <!-- Lado derecho: Estadios y goles -->
+        <div style="display: flex; flex-direction: column; justify-content: space-between; border-left: 2px solid #FFFFFF; padding-left: 2rem; height: 100%;">
+            <div>
+                <span style="font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; color: #E2E8F0; text-transform: uppercase; display: block; margin-bottom: 0.8rem;">RECINTOS MÁS VISITADOS</span>
+                <div id="share-stadiums-container" style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">
+                    <!-- Rellenado por JS -->
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.4); padding-top: 0.8rem; margin-top: auto;">
+                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">GOLES VISTOS</span>
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1;">
+                    <span id="share-gf" style="color: #69C0FF;">0</span> F / <span id="share-gc">0</span> C
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pie de página -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #FFFFFF; padding-top: 0.8rem; font-size: 0.7rem; font-weight: 800; color: #CBD5E1;">
+        <span>"DENTRO DE LA CANCHA O DESDE EL TABLÓN"</span>
+        <span style="letter-spacing: 1px; color: #FC8181; text-transform: uppercase;">UDECHILE-STATS.LOCAL</span>
     </div>
 </div>
 

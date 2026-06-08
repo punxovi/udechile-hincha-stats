@@ -158,17 +158,28 @@ async def dashboard(
     current_user = get_current_user(request)
     
     use_case = GenerateFanDashboardUseCase(match_repo, attendance_repo)
-    snapshot = use_case.execute(user_id)
+    enriched_data = use_case.execute_enriched(user_id)
     
-    # Serializar directamente usando Pydantic
-    dashboard_json = snapshot.model_dump_json()
+    import json
+    # Serializar a nivel de dict convirtiendo los snapshots a dict primero
+    serialized_data = {
+        "general": enriched_data["general"].model_dump(),
+        "by_year": {y: snap.model_dump() for y, snap in enriched_data["by_year"].items()},
+        "classics": {
+            "combined": enriched_data["classics"]["combined"].model_dump(),
+            "cc": enriched_data["classics"]["cc"].model_dump(),
+            "uc": enriched_data["classics"]["uc"].model_dump()
+        }
+    }
+    dashboard_json = json.dumps(serialized_data)
     
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
         context={
             "user_id": user_id, 
-            "snapshot": snapshot,
+            "snapshot": enriched_data["general"],
+            "enriched_data": enriched_data,
             "dashboard_json": dashboard_json,
             "current_user": current_user
         }
