@@ -664,7 +664,9 @@ function handleStartSimClick() {
     } else if (action === 'setup') {
         setupNextMatchSimulation();
     } else if (action === 'gameover') {
-        restartGame();
+        const isWinner = sessionStorage.getItem('gameover_winner') === 'true';
+        const msg = sessionStorage.getItem('gameover_msg') || "Fin del juego.";
+        endGame(isWinner, msg);
     }
 }
 
@@ -1081,15 +1083,27 @@ function endGame(isWinner, message) {
     }
 }
 
-// Al presionar VER RESULTADOS
+// Reiniciar juego
 function restartGame() {
-    const isWinner = sessionStorage.getItem('gameover_winner') === 'true';
-    const msg = sessionStorage.getItem('gameover_msg') || "Fin del juego.";
+    dreamTeam = Array(11).fill(null);
+    draftProgress = 0;
+    teamRating = 0.0;
+    resortCount = 2;
+    currentSorteadoPlantel = null;
+    selectedPlayerToPlace = null;
+    availablePlantelKeys = [];
+    
+    tournamentStage = "groups";
+    currentMatchIndex = 0;
+    tournamentTeams = [];
+    groupStandings = [];
+    playoffOpponent = null;
+    playoffStageIndex = 0;
     
     sessionStorage.removeItem('gameover_winner');
     sessionStorage.removeItem('gameover_msg');
     
-    endGame(isWinner, msg);
+    switchScreen('screen-setup');
 }
 
 // Guardar
