@@ -504,10 +504,12 @@ function generateTournament() {
     const allPlanteles = window.plantelesData;
     const keys = Object.keys(allPlanteles);
     
-    keys.forEach((key) => {
+    // Solo permitimos planteles que sean campeones para los rivales del torneo
+    const championKeys = keys.filter(k => allPlanteles[k].is_champion === true);
+    
+    // Primero agregamos a todos los campeones una vez (excluyendo el del usuario si corresponde, pero los agregamos a la bolsa general)
+    championKeys.forEach((key) => {
         const p = allPlanteles[key];
-        if (p.is_champion !== true) return;
-        
         const sum = p.players.reduce((acc, pl) => acc + pl.rating, 0);
         let avg = sum / p.players.length;
         
@@ -525,13 +527,23 @@ function generateTournament() {
         });
     });
     
+    // Si todavía faltan equipos para llegar a 32, rellenamos clonando campeones reales de forma aleatoria
     while (tournamentTeams.length < 32) {
+        const randomKey = championKeys[Math.floor(Math.random() * championKeys.length)];
+        const p = allPlanteles[randomKey];
+        const sum = p.players.reduce((acc, pl) => acc + pl.rating, 0);
+        let avg = sum / p.players.length;
+        
+        if (selectedDifficulty === 'hard') {
+            avg += 3.0;
+        }
+        
         tournamentTeams.push({
             id: tournamentTeams.length,
-            name: `U. DE CHILE CLÁSICA ${tournamentTeams.length}`,
-            rating: selectedDifficulty === 'hard' ? 80.0 : 77.0,
+            name: p.name.toUpperCase(),
+            rating: avg,
             is_user: false,
-            players: [],
+            players: p.players,
             pts: 0, pj: 0, gf: 0, gc: 0
         });
     }
@@ -693,10 +705,13 @@ function setupNextMatchSimulation() {
     document.getElementById('sim-away-name').textContent = cleanAwayName;
     document.getElementById('sim-scoreboard').textContent = "0 - 0";
     
-    // Ocultar bitácora y temporizador hasta que empiece la simulación
+    // Ocultar bitácora, temporizador y caja de penales
     document.getElementById('sim-timer').style.display = 'none';
     document.getElementById('sim-events-log').style.display = 'none';
     document.getElementById('sim-events-log').innerHTML = '';
+    
+    document.getElementById('sim-penalties-card').style.display = 'none';
+    document.getElementById('pen-current-kicker-banner').style.display = 'block';
     
     const btn = document.getElementById('btn-start-sim');
     btn.disabled = false;
@@ -871,62 +886,117 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
 
 // Simular penales en Playoffs
 function simulatePenalties(home, away) {
-    const logEl = document.getElementById('sim-events-log');
+    const btn = document.getElementById('btn-start-sim');
+    btn.disabled = true;
     
-    logEl.innerHTML += `
-        <div class="event-row" style="animation: fadeInUp 0.3s ease;">
-            <span class="event-minute">PEN</span>
-            <span class="event-icon">⚽</span>
-            <span class="event-text" style="color: #EAB308;">TANDA DE PENALES</span>
-        </div>
-    `;
+    const penaltiesCard = document.getElementById('sim-penalties-card');
+    penaltiesCard.style.display = 'flex';
+    
+    const localList = document.getElementById('pen-local-list');
+    const awayList = document.getElementById('pen-away-list');
+    const vsList = document.getElementById('pen-vs-separator');
+    const kickerNameSpan = document.getElementById('pen-kicker-name');
+    
+    localList.innerHTML = '';
+    awayList.innerHTML = '';
+    vsList.innerHTML = '';
     
     let pensHome = 0;
     let pensAway = 0;
     
-    for (let r = 1; r <= 5; r++) {
-        const goalHome = Math.random() < 0.75;
-        const goalAway = Math.random() < 0.75;
-        if (goalHome) pensHome++;
-        if (goalAway) pensAway++;
-    }
+    // Extraer jugadores reales de los planteles para patear
+    const localKickers = [...home.players].filter(p => p !== null).sort(() => 0.5 - Math.random());
+    const awayKickers = [...away.players].filter(p => p !== null).sort(() => 0.5 - Math.random());
     
-    let attempts = 0;
-    while (pensHome === pensAway && attempts < 15) {
-        const goalHome = Math.random() < 0.75;
-        const goalAway = Math.random() < 0.75;
-        if (goalHome) pensHome++;
-        if (goalAway) pensAway++;
-        attempts++;
-    }
+    let isLocalTurn = true;
+    let shotIndex = 0;
     
-    if (pensHome === pensAway) {
-        if (Math.random() < 0.5) pensHome++;
-        else pensAway++;
-    }
-    
-    logEl.innerHTML += `
-        <div class="event-row">
-            <span class="event-minute">RES</span>
-            <span class="event-icon">🏆</span>
-            <span class="event-text" style="color: #EAB308;">PENS: ${pensHome} - ${pensAway}</span>
-        </div>
-    `;
-    logEl.scrollTop = logEl.scrollHeight;
-    
-    const btn = document.getElementById('btn-start-sim');
-    btn.disabled = false;
-    
-    if (pensHome > pensAway) {
-        btn.textContent = "AVANZAR DE RONDA";
-        btn.setAttribute('data-action', 'setup');
+    const interval = setInterval(() => {
+        const localShots = Math.floor(shotIndex / 2) + (shotIndex % 2);
+        const awayShots = Math.floor(shotIndex / 2);
         
-        // Simular que avanzó en playoffs
-        playoffStageIndex++;
-    } else {
-        btn.textContent = "VER RESULTADOS";
-        btn.setAttribute('data-action', 'gameover');
-        sessionStorage.setItem('gameover_msg', `Fuiste eliminado en penales (${pensHome}-${pensAway}) en ${playoffStageNames[playoffStageIndex]} frente a ${away.name.replace(' (CAMPEÓN)', '')}.`);
+        // Verificar si la tanda ya está decidida matemáticamente
+        if (shotIndex >= 10) {
+            // Muerte súbita: termina si después de un par completo de tiros hay diferencia
+            if (localShots === awayShots && pensHome !== pensAway) {
+                finalizeShootout();
+                return;
+            }
+        } else {
+            // Tanda regular de 5 disparos por lado
+            const localRemaining = 5 - localShots;
+            const awayRemaining = 5 - awayShots;
+            
+            if (pensHome > pensAway + awayRemaining || pensAway > pensHome + localRemaining) {
+                finalizeShootout();
+                return;
+            }
+        }
+        
+        if (isLocalTurn) {
+            const kicker = localKickers[localShots % localKickers.length] || { name: "Leyenda Azul" };
+            const lastName = kicker.name.split(' ').pop().toUpperCase();
+            kickerNameSpan.textContent = `${home.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '').replace(' (MATADOR SALAS)', '').replace(' (RACHA INVICTO)', '').substring(0, 10)}: ${lastName}`;
+            
+            const isGoal = Math.random() < 0.75;
+            if (isGoal) pensHome++;
+            
+            const badge = isGoal 
+                ? `<span style="background: #dcfce7; color: #15803d; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; margin-right: 0.5rem; border: 1.5px solid #16a34a;">⚽</span>` 
+                : `<span style="background: #fee2e2; color: #ef4444; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; margin-right: 0.5rem; border: 1.5px solid #dc2626;">❌</span>`;
+            
+            localList.innerHTML += `
+                <div style="display: flex; align-items: center; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; animation: fadeInUp 0.3s ease;">
+                    ${badge}
+                    <span>${lastName}</span>
+                </div>
+            `;
+            
+            vsList.innerHTML += `<div style="height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-secondary); opacity: 0.5;">vs</div>`;
+            
+            document.getElementById('sim-scoreboard').textContent = `${pensHome} - ${pensAway}`;
+            isLocalTurn = false;
+        } else {
+            const kicker = awayKickers[awayShots % awayKickers.length] || { name: "Rival" };
+            const lastName = kicker.name.split(' ').pop().toUpperCase();
+            kickerNameSpan.textContent = `${away.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '').replace(' (MATADOR SALAS)', '').replace(' (RACHA INVICTO)', '').substring(0, 10)}: ${lastName}`;
+            
+            const isGoal = Math.random() < 0.75;
+            if (isGoal) pensAway++;
+            
+            const badge = isGoal 
+                ? `<span style="background: #dcfce7; color: #15803d; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; margin-left: 0.5rem; border: 1.5px solid #16a34a;">⚽</span>` 
+                : `<span style="background: #fee2e2; color: #ef4444; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; margin-left: 0.5rem; border: 1.5px solid #dc2626;">❌</span>`;
+            
+            awayList.innerHTML += `
+                <div style="display: flex; align-items: center; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; animation: fadeInUp 0.3s ease;">
+                    <span>${lastName}</span>
+                    ${badge}
+                </div>
+            `;
+            
+            document.getElementById('sim-scoreboard').textContent = `${pensHome} - ${pensAway}`;
+            isLocalTurn = true;
+        }
+        
+        shotIndex++;
+    }, 1200);
+    
+    function finalizeShootout() {
+        clearInterval(interval);
+        
+        document.getElementById('pen-current-kicker-banner').style.display = 'none';
+        
+        btn.disabled = false;
+        if (pensHome > pensAway) {
+            btn.textContent = "AVANZAR DE RONDA";
+            btn.setAttribute('data-action', 'setup');
+            playoffStageIndex++;
+        } else {
+            btn.textContent = "VER RESULTADOS";
+            btn.setAttribute('data-action', 'gameover');
+            sessionStorage.setItem('gameover_msg', `Fuiste eliminado en penales (${pensHome}-${pensAway}) en ${playoffStageNames[playoffStageIndex]} frente a ${away.name.replace(' (CAMPEÓN)', '')}.`);
+        }
     }
 }
 
