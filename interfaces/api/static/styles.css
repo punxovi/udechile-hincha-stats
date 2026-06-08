@@ -45,6 +45,8 @@
   --text-secondary: #E2E8F0;
   --text-tertiary: #CBD5E1;
   
+  --success: #4ADE80; /* Verde brillante para alto contraste en modo oscuro */
+  
   --card-bg: #002D72;
   --card-border: #FFFFFF;
   --glass-shadow: 4px 4px 0px #000000;

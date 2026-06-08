@@ -105,12 +105,51 @@
 
     .mode-card.active {
         box-shadow: 6px 6px 0px var(--text-primary);
-        background: var(--text-primary);
-        color: var(--bg-color);
+        background: var(--text-primary) !important;
+        color: var(--bg-color) !important;
+    }
+
+    .mode-card h3 {
+        color: var(--text-primary);
+        transition: color 0.1s ease;
     }
 
     .mode-card.active h3 {
-        color: var(--bg-color);
+        color: var(--bg-color) !important;
+    }
+
+    .mode-card#mode-champions:not(.active) h3 {
+        color: var(--accent-red);
+    }
+
+    /* Estilo para botón de re-sorteo acentuado */
+    .spin-btn-accent {
+        border-color: var(--accent-red) !important;
+        color: var(--accent-red) !important;
+    }
+
+    .spin-btn-accent i {
+        color: var(--accent-red) !important;
+        transition: color 0.1s ease;
+    }
+
+    .spin-btn-accent:hover:not(:disabled) {
+        background: var(--accent-red) !important;
+        color: var(--bg-color) !important;
+    }
+
+    .spin-btn-accent:hover:not(:disabled) i {
+        color: var(--bg-color) !important;
+    }
+
+    .spin-btn-warning {
+        border-color: #EAB308 !important;
+        color: #EAB308 !important;
+    }
+
+    .spin-btn-warning:hover {
+        background: #EAB308 !important;
+        color: #000000 !important;
     }
 
     /* LAYOUT TRES COLUMNAS DEL DRAFT */
@@ -178,7 +217,7 @@
         align-items: center;
         justify-content: center;
         text-transform: uppercase;
-        border: 2px dashed rgba(0,0,0,0.15);
+        border: 2px dashed rgba(156, 163, 175, 0.4);
         padding: 0.5rem;
     }
 
@@ -406,7 +445,7 @@
     }
 
     .field-circle-slot.filled {
-        background: #FFF;
+        background: var(--card-bg);
         border: 3px solid var(--text-primary);
         box-shadow: 3px 3px 0px var(--text-primary);
     }
@@ -614,7 +653,7 @@
 
     /* Estilos del Nuevo Marcador Deportivo Premium */
     .match-header-card {
-        background: #FFF;
+        background: var(--card-bg);
         border: 3px solid var(--text-primary);
         box-shadow: 4px 4px 0px var(--text-primary);
         padding: 1rem 1.5rem;
@@ -666,7 +705,7 @@
     .match-score-display {
         font-family: 'Bebas Neue', sans-serif;
         font-size: 2.5rem;
-        color: #15803d; /* Verde oscuro */
+        color: var(--success); /* Adaptable a cada tema */
         line-height: 1;
     }
 
@@ -684,7 +723,7 @@
 
     /* Bitácora de Eventos Premium (Estilo Captura) */
     .events-panel-card {
-        background: #FFF;
+        background: var(--card-bg);
         border: 3px solid var(--text-primary);
         box-shadow: 4px 4px 0px var(--text-primary);
         border-left: 6px solid #16a34a; /* Acento verde grueso en el lateral izquierdo */
@@ -748,7 +787,7 @@
                         </p>
                     </div>
                     <div class="mode-card" id="mode-champions" onclick="selectMode('champions')">
-                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; margin-bottom: 0.5rem; text-transform: uppercase; color: var(--accent-red);">Modo Solo Campeones</h3>
+                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; margin-bottom: 0.5rem; text-transform: uppercase;">Modo Solo Campeones</h3>
                         <p style="font-size: 0.8rem; line-height: 1.4; font-family: 'Montserrat', sans-serif;">
                             Solo reclutas jugadores pertenecientes a los 18 planteles campeones de Primera División de la U de Chile.
                         </p>
@@ -866,13 +905,13 @@
                                 <i data-lucide="shuffle" style="width: 1.1rem; height: 1.1rem;"></i>
                                 GIRAR RULETA
                             </button>
-                            <button id="btn-resort-plantel" class="spin-btn" onclick="resortPlantel()" disabled style="border-color: var(--accent-red); color: var(--text-primary);">
-                                <i data-lucide="refresh-cw" style="width: 1.1rem; height: 1.1rem; color: var(--accent-red);"></i>
+                            <button id="btn-resort-plantel" class="spin-btn spin-btn-accent" onclick="resortPlantel()" disabled>
+                                <i data-lucide="refresh-cw" style="width: 1.1rem; height: 1.1rem;"></i>
                                 RE-SORTEAR
                             </button>
                         </div>
                         <div style="margin-top: 0.8rem;">
-                            <button id="btn-auto-draft" class="spin-btn" onclick="autoDraftCheat()" style="border-color: #eab308; color: #eab308; width: 100%; justify-content: center; font-size: 0.75rem; font-weight: 800;">
+                            <button id="btn-auto-draft" class="spin-btn spin-btn-warning" onclick="autoDraftCheat()" style="width: 100%; justify-content: center; font-size: 0.75rem; font-weight: 800;">
                                 ⚡ AUTO-COMPLETAR EQUIPO (TEST)
                             </button>
                         </div>
