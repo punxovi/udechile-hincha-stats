@@ -499,15 +499,14 @@ function generateTournament() {
         pts: 0, pj: 0, gf: 0, gc: 0
     };
     
-    tournamentTeams = [userTeam];
+    tournamentTeams = []; // Bolsa de rivales posibles
     
     const allPlanteles = window.plantelesData;
     const keys = Object.keys(allPlanteles);
     
-    // Solo permitimos planteles que sean campeones para los rivales del torneo
+    // Obtenemos solo los campeones reales para los rivales
     const championKeys = keys.filter(k => allPlanteles[k].is_champion === true);
     
-    // Primero agregamos a todos los campeones una vez (excluyendo el del usuario si corresponde, pero los agregamos a la bolsa general)
     championKeys.forEach((key) => {
         const p = allPlanteles[key];
         const sum = p.players.reduce((acc, pl) => acc + pl.rating, 0);
@@ -527,29 +526,11 @@ function generateTournament() {
         });
     });
     
-    // Si todavía faltan equipos para llegar a 32, rellenamos clonando campeones reales de forma aleatoria
-    while (tournamentTeams.length < 32) {
-        const randomKey = championKeys[Math.floor(Math.random() * championKeys.length)];
-        const p = allPlanteles[randomKey];
-        const sum = p.players.reduce((acc, pl) => acc + pl.rating, 0);
-        let avg = sum / p.players.length;
-        
-        if (selectedDifficulty === 'hard') {
-            avg += 3.0;
-        }
-        
-        tournamentTeams.push({
-            id: tournamentTeams.length,
-            name: p.name.toUpperCase(),
-            rating: avg,
-            is_user: false,
-            players: p.players,
-            pts: 0, pj: 0, gf: 0, gc: 0
-        });
-    }
+    // Barajamos todos los rivales posibles de forma aleatoria
+    const shuffledRivals = tournamentTeams.sort(() => 0.5 - Math.random());
     
-    const rivals = tournamentTeams.filter(t => !t.is_user);
-    const shuffledRivals = rivals.sort(() => 0.5 - Math.random());
+    // Guardamos la lista barajada para ir tomando los rivales de forma única y consecutiva
+    tournamentTeams = shuffledRivals;
     
     groupStandings = [userTeam, shuffledRivals[0], shuffledRivals[1], shuffledRivals[2]];
     
@@ -1018,8 +999,9 @@ function advancePlayoffs() {
 
 // Oponente de playoffs
 function selectPlayoffOpponent() {
-    const rivals = tournamentTeams.filter(t => !t.is_user);
-    return rivals[Math.floor(Math.random() * rivals.length)];
+    // Los rivales de grupo son los índices 0, 1 y 2 de la lista barajada.
+    // Los rivales de playoffs (Octavos, Cuartos, Semis, Final) serán los índices 3, 4, 5 y 6.
+    return tournamentTeams[3 + playoffStageIndex];
 }
 
 // Simular resto del grupo
