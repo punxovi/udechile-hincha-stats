@@ -7,6 +7,13 @@ let dreamTeam = Array(11).fill(null);
 let draftProgress = 0;
 let teamRating = 0.0;
 
+// Variables de Ruleta
+let resortCount = 3;
+let currentSorteadoPlantel = null;
+let currentDraftOptions = [];
+let rouletteInterval = null;
+let isSpinning = false;
+
 // Datos de torneo
 let teamName = "";
 let tournamentStage = "groups"; // "groups", "octavos", "cuartos", "semis", "final", "winner", "gameover"
@@ -21,10 +28,10 @@ const playoffStageNames = ["Octavos de Final", "Cuartos de Final", "Semifinal", 
 const FORMACIONES = {
     '4-4-2': [
         { id: 0, pos: 'ARQ', label: 'ARQ', row: 1 },
-        { id: 1, pos: 'DEF', label: 'DFD', row: 2 },
+        { id: 1, pos: 'DEF', label: 'LD', row: 2 },
         { id: 2, pos: 'DEF', label: 'DFC', row: 2 },
         { id: 3, pos: 'DEF', label: 'DFC', row: 2 },
-        { id: 4, pos: 'DEF', label: 'DFI', row: 2 },
+        { id: 4, pos: 'DEF', label: 'LI', row: 2 },
         { id: 5, pos: 'MED', label: 'MC', row: 3 },
         { id: 6, pos: 'MED', label: 'MC', row: 3 },
         { id: 7, pos: 'MED', label: 'MD', row: 3 },
@@ -34,10 +41,10 @@ const FORMACIONES = {
     ],
     '4-3-3': [
         { id: 0, pos: 'ARQ', label: 'ARQ', row: 1 },
-        { id: 1, pos: 'DEF', label: 'DFD', row: 2 },
+        { id: 1, pos: 'DEF', label: 'LD', row: 2 },
         { id: 2, pos: 'DEF', label: 'DFC', row: 2 },
         { id: 3, pos: 'DEF', label: 'DFC', row: 2 },
-        { id: 4, pos: 'DEF', label: 'DFI', row: 2 },
+        { id: 4, pos: 'DEF', label: 'LI', row: 2 },
         { id: 5, pos: 'MED', label: 'MC', row: 3 },
         { id: 6, pos: 'MED', label: 'MC', row: 3 },
         { id: 7, pos: 'MED', label: 'MCO', row: 3 },
@@ -60,10 +67,10 @@ const FORMACIONES = {
     ],
     '4-2-3-1': [
         { id: 0, pos: 'ARQ', label: 'ARQ', row: 1 },
-        { id: 1, pos: 'DEF', label: 'DFD', row: 2 },
+        { id: 1, pos: 'DEF', label: 'LD', row: 2 },
         { id: 2, pos: 'DEF', label: 'DFC', row: 2 },
         { id: 3, pos: 'DEF', label: 'DFC', row: 2 },
-        { id: 4, pos: 'DEF', label: 'DFI', row: 2 },
+        { id: 4, pos: 'DEF', label: 'LI', row: 2 },
         { id: 5, pos: 'MED', label: 'MCD', row: 3 },
         { id: 6, pos: 'MED', label: 'MCD', row: 3 },
         { id: 7, pos: 'MED', label: 'MCO', row: 3 },
@@ -72,10 +79,6 @@ const FORMACIONES = {
         { id: 10, pos: 'DEL', label: 'DC', row: 4 }
     ]
 };
-
-document.addEventListener("DOMContentLoaded", () => {
-    // Inicializar listeners o configuraciones si se requiere
-});
 
 // Cambiar modo de juego (Normal / Solo Campeones)
 function selectMode(mode) {
@@ -96,12 +99,32 @@ function startDraft() {
     dreamTeam = Array(11).fill(null);
     draftProgress = 0;
     teamRating = 0.0;
+    resortCount = 3;
+    activeSlotIndex = null;
+    isSpinning = false;
+    currentSorteadoPlantel = null;
+    currentDraftOptions = [];
     
     // Switch de pantalla
     switchScreen('screen-draft');
     
-    // Dibujar el campo de futbol y sus slots vacios
+    // Configurar labels del resort
+    updateResortLabels();
+    
+    // Dibujar el campo y el box score
     renderFieldSlots();
+    renderBoxScore();
+    
+    // Limpiar ruleta e inputs
+    document.getElementById('roulette-display').textContent = 'SELECCIONA SLOT';
+    document.getElementById('btn-spin-roulette').disabled = true;
+    document.getElementById('btn-resort-plantel').disabled = true;
+    
+    document.getElementById('draft-players-list').innerHTML = `
+        <div style="text-align: center; color: var(--text-secondary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; padding: 2rem 0; text-transform: uppercase;">
+            Toca un slot dashed del campo y gira la ruleta
+        </div>
+    `;
 }
 
 // Cambiar de pantalla del juego
@@ -110,7 +133,15 @@ function switchScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 }
 
-// Renderizar grilla del campo tactico
+// Actualizar textos de re-sorteo
+function updateResortLabels() {
+    const label = document.getElementById('resort-count-label');
+    if (label) {
+        label.textContent = `¿No te gustó? Re-sortea · ${resortCount} restantes`;
+    }
+}
+
+// Renderizar grilla del campo tactico de circulos
 function renderFieldSlots() {
     const container = document.getElementById('field-rows-container');
     container.innerHTML = '';
@@ -125,24 +156,26 @@ function renderFieldSlots() {
         
         rowSlots.forEach(slot => {
             const slotEl = document.createElement('div');
-            slotEl.id = `slot-${slot.id}`;
-            slotEl.className = 'player-slot';
+            slotEl.id = `circle-slot-${slot.id}`;
+            slotEl.className = 'field-circle-slot';
             slotEl.onclick = () => selectSlot(slot.id, slot.pos);
+            
+            // Si el slot activo esta seleccionado
+            if (activeSlotIndex === slot.id) {
+                slotEl.classList.add('active-slot');
+            }
             
             // Si tiene jugador asignado
             const player = dreamTeam[slot.id];
             if (player) {
-                slotEl.className = 'player-slot filled';
+                slotEl.className = 'field-circle-slot filled';
                 slotEl.innerHTML = `
-                    <span class="slot-pos-badge" style="background: var(--text-secondary);">${slot.label}</span>
-                    <span class="slot-card-rating">${player.rating}</span>
-                    <span class="slot-card-name">${player.name.split(' ').pop()}</span>
-                    <span class="slot-card-year">'${String(player.year).substring(2)}</span>
+                    <span class="filled-rating">${player.rating}</span>
+                    <span class="filled-name-badge">${player.name.split(' ').pop()}</span>
                 `;
             } else {
                 slotEl.innerHTML = `
-                    <span class="slot-pos-badge">${slot.label}</span>
-                    <span class="slot-empty-text">+</span>
+                    <span class="circle-pos-label">${slot.label}</span>
                 `;
             }
             
@@ -153,101 +186,231 @@ function renderFieldSlots() {
     }
 }
 
-// Activar un slot del campo táctico para iniciar el draft en esa posicion
+// Renderizar Box Score lateral derecho
+function renderBoxScore() {
+    const slots = FORMACIONES[selectedFormation];
+    const container = document.getElementById('box-score-positions-list');
+    container.innerHTML = '';
+    
+    slots.forEach(slot => {
+        const player = dreamTeam[slot.id];
+        const row = document.createElement('div');
+        row.className = 'box-score-row';
+        
+        row.innerHTML = `
+            <span class="box-score-row-pos">${slot.label}</span>
+            <span class="box-score-row-name">${player ? player.name : '————'}</span>
+            <span class="box-score-row-rating">${player ? player.rating : '--'}</span>
+        `;
+        
+        container.appendChild(row);
+    });
+    
+    // Actualizar progreso
+    document.getElementById('box-score-count').textContent = `${draftProgress} / 11`;
+    
+    // Actualizar rating enorme
+    const ratingHuge = document.getElementById('box-score-rating');
+    if (draftProgress === 0) {
+        ratingHuge.textContent = '--';
+    } else {
+        ratingHuge.textContent = Math.round(teamRating);
+    }
+    
+    // Actualizar barra de balance
+    calculateTeamBalance();
+}
+
+// Calcular balance de Ataque vs Defensa
+function calculateTeamBalance() {
+    const filled = dreamTeam.filter(p => p !== null);
+    const fillBar = document.getElementById('balance-bar-fill');
+    const ratioText = document.getElementById('balance-ratio-text');
+    
+    if (filled.length === 0) {
+        fillBar.style.width = '50%';
+        ratioText.textContent = '50% / 50%';
+        return;
+    }
+    
+    let sumDef = 0;
+    let countDef = 0;
+    let sumAtk = 0;
+    let countAtk = 0;
+    
+    filled.forEach(p => {
+        if (p.pos === 'ARQ' || p.pos === 'DEF') {
+            sumDef += p.rating;
+            countDef++;
+        } else {
+            sumAtk += p.rating;
+            countAtk++;
+        }
+    });
+    
+    const avgDef = countDef > 0 ? (sumDef / countDef) : 75.0;
+    const avgAtk = countAtk > 0 ? (sumAtk / countAtk) : 75.0;
+    
+    const total = avgDef + avgAtk;
+    const atkPct = Math.round((avgAtk / total) * 100);
+    const defPct = 100 - atkPct;
+    
+    fillBar.style.width = `${atkPct}%`;
+    ratioText.textContent = `${atkPct}% / ${defPct}%`;
+}
+
+// Activar slot para sorteo
 function selectSlot(slotId, pos) {
-    // Si ya esta lleno, no permitir cambiarlo (para añadir mas estrategia de FUT Draft)
-    if (dreamTeam[slotId] !== null) return;
+    if (dreamTeam[slotId] !== null || isSpinning) return;
     
     activeSlotIndex = slotId;
     
-    // Quitar activa de otros slots
-    document.querySelectorAll('.player-slot').forEach(el => el.classList.remove('active-slot'));
+    // Redibujar slots para marcar activo
+    renderFieldSlots();
     
-    // Añadir activa al seleccionado
-    const activeEl = document.getElementById(`slot-${slotId}`);
-    if (activeEl) activeEl.classList.add('active-slot');
+    // Habilitar boton de girar ruleta
+    document.getElementById('btn-spin-roulette').disabled = false;
+    document.getElementById('btn-resort-plantel').disabled = true;
+    document.getElementById('roulette-display').textContent = 'PRESIONA GIRAR';
     
-    // Generar opciones de draft para esa posicion
-    generateDraftPool(pos);
+    document.getElementById('draft-instructions').textContent = `Slot activo: ${FORMACIONES[selectedFormation][slotId].label}. Gira la ruleta para ver planteles.`;
+    
+    // Limpiar lista de jugadores anterior
+    document.getElementById('draft-players-list').innerHTML = `
+        <div style="text-align: center; color: var(--text-secondary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; padding: 2rem 0; text-transform: uppercase;">
+            Gira la ruleta para revelar futbolistas
+        </div>
+    `;
 }
 
-// Generar una tanda de 4 jugadores elegibles de un plantel al azar
-function generateDraftPool(position) {
+// Iniciar animacion de ruleta en tiempo real
+function startRouletteSpin() {
+    if (activeSlotIndex === null || isSpinning) return;
+    
+    isSpinning = true;
+    document.getElementById('btn-spin-roulette').disabled = true;
+    document.getElementById('btn-resort-plantel').disabled = true;
+    
+    const display = document.getElementById('roulette-display');
     const allPlanteles = window.plantelesData;
     const keys = Object.keys(allPlanteles);
     
-    // Filtrar planteles segun el modo (champions o todos)
+    // Filtrar planteles segun el modo
     let eligibleKeys = keys;
     if (selectedMode === 'champions') {
         eligibleKeys = keys.filter(k => allPlanteles[k].is_champion === true);
     }
     
-    // Intentar buscar un plantel al azar que tenga al menos un jugador en esta posicion
-    let randomPlantel = null;
+    const targetSlot = FORMACIONES[selectedFormation][activeSlotIndex];
+    
+    // Buscamos un plantel al azar de antemano que contenga al menos un jugador en esa posicion
+    let selectedPlantelKey = null;
     let eligiblePlayers = [];
     let attempts = 0;
     
     while (attempts < 50) {
         const randomKey = eligibleKeys[Math.floor(Math.random() * eligibleKeys.length)];
-        randomPlantel = allPlanteles[randomKey];
-        eligiblePlayers = randomPlantel.players.filter(p => p.pos === position);
-        
-        // Si encontramos jugadores en este plantel en esa posicion, lo seleccionamos
+        const p = allPlanteles[randomKey];
+        eligiblePlayers = p.players.filter(pl => pl.pos === targetSlot.pos);
         if (eligiblePlayers.length > 0) {
+            selectedPlantelKey = randomKey;
             break;
         }
         attempts++;
     }
     
-    // En caso extremo de no hallar (no ocurrira con nuestro dataset), buscar en todos
-    if (eligiblePlayers.length === 0) {
-        const firstKey = keys[0];
-        randomPlantel = allPlanteles[firstKey];
-        eligiblePlayers = randomPlantel.players;
+    if (!selectedPlantelKey) {
+        selectedPlantelKey = eligibleKeys[0];
+        eligiblePlayers = allPlanteles[selectedPlantelKey].players;
     }
     
-    // Elegir hasta 4 jugadores al azar de esa lista sin repetir
-    const shuffled = [...eligiblePlayers].sort(() => 0.5 - Math.random());
-    const selectedOptions = shuffled.slice(0, 4);
+    const targetPlantel = allPlanteles[selectedPlantelKey];
     
-    // Dibujar las opciones en el panel lateral
-    const container = document.getElementById('draft-options-container');
-    document.getElementById('draft-pool-origin').textContent = `Plantel asignado: ${randomPlantel.name}`;
+    // Animación de la ruleta (ciclado rapido desacelerando)
+    let speed = 40; // ms por ciclo
+    let duration = 0;
+    const maxDuration = 1800; // 1.8 segundos de giro
     
-    container.innerHTML = '';
-    selectedOptions.forEach(player => {
-        const card = document.createElement('div');
-        card.className = 'player-card';
-        card.onclick = () => recruitPlayer(player, randomPlantel.year);
+    function spinCycle() {
+        // Mostrar un plantel al azar en el display
+        const randomKey = eligibleKeys[Math.floor(Math.random() * eligibleKeys.length)];
+        display.textContent = allPlanteles[randomKey].name.replace(' (Campeón)', '').replace(' (Ballet Azul)', '').replace(' (Matador Salas)', '').replace(' (Racha Invicto)', '').replace(' (Vaccia)', '').replace(' (Apertura)', '').replace(' (Sampaoli)', '').replace(' (Triplete)', '').replace(' (Copa Chile)', '').replace(' (Soteldo)', '').replace(' (Transición)', '').replace(' (Larrivey)', '').replace(' (Osorio/Assadi)', '').replace(' (Pellegrino)', '').replace(' (Álvarez)', '').replace(' (Actual)', '').replace(' (Finalista)', '').replace(' (Semifinalista)', '');
         
-        card.innerHTML = `
-            <div style="display: flex; align-items: center;">
-                <div class="card-rating-badge">${player.rating}</div>
-                <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
-                    <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--text-primary); text-transform: uppercase;">
-                        ${player.name}
-                    </span>
-                    <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">
-                        Posición: ${player.pos}
-                    </span>
-                </div>
-            </div>
-            <i data-lucide="plus-circle" style="width: 1.5rem; height: 1.5rem; color: var(--text-secondary);"></i>
-        `;
+        duration += speed;
         
-        container.appendChild(card);
-    });
-    
-    if (window.lucide) {
-        lucide.createIcons();
+        if (duration < maxDuration) {
+            // Desacelerar gradualmente aumentando el tiempo de espera
+            if (duration > maxDuration * 0.7) {
+                speed += 25;
+            } else if (duration > maxDuration * 0.4) {
+                speed += 12;
+            }
+            setTimeout(spinCycle, speed);
+        } else {
+            // Detener en el plantel real asignado
+            display.textContent = targetPlantel.name.toUpperCase();
+            currentSorteadoPlantel = targetPlantel;
+            
+            // Elegir hasta 4 opciones de jugadores de esa posicion en el plantel sorteado
+            const shuffled = [...eligiblePlayers].sort(() => 0.5 - Math.random());
+            currentDraftOptions = shuffled.slice(0, 4);
+            
+            // Dibujar la lista de jugadores en la columna izquierda
+            renderDraftPlayersList(currentDraftOptions, targetPlantel.year);
+            
+            isSpinning = false;
+            
+            // Habilitar re-sorteo si le quedan
+            if (resortCount > 0) {
+                document.getElementById('btn-resort-plantel').disabled = false;
+            }
+        }
     }
+    
+    spinCycle();
 }
 
-// Reclutar al jugador seleccionado
-function recruitPlayer(player, year) {
-    if (activeSlotIndex === null) return;
+// Dibujar lista de jugadores en la izquierda
+function renderDraftPlayersList(players, year) {
+    const container = document.getElementById('draft-players-list');
+    container.innerHTML = '';
     
-    // Guardar en la alineacion
+    players.forEach((player, idx) => {
+        const item = document.createElement('div');
+        item.className = 'player-select-item';
+        item.onclick = () => recruitPlayer(player, year);
+        
+        // Numero dorsal ficticio
+        const number = `#${idx + 10}`;
+        
+        item.innerHTML = `
+            <div class="item-left">
+                <span class="item-number">${number}</span>
+                <span class="item-name">${player.name}</span>
+                <span class="item-pos">${player.pos}</span>
+            </div>
+            <span class="item-rating">${player.rating}</span>
+        `;
+        
+        container.appendChild(item);
+    });
+}
+
+// Re-sortear plantel para el slot activo
+function resortPlantel() {
+    if (resortCount <= 0 || isSpinning || activeSlotIndex === null) return;
+    
+    resortCount--;
+    updateResortLabels();
+    
+    // Volver a girar
+    startRouletteSpin();
+}
+
+// Reclutar y asignar el jugador elegido
+function recruitPlayer(player, year) {
+    if (activeSlotIndex === null || isSpinning) return;
+    
     dreamTeam[activeSlotIndex] = {
         name: player.name,
         pos: player.pos,
@@ -261,29 +424,31 @@ function recruitPlayer(player, year) {
     // Recalcular media
     recalculateTeamRating();
     
-    // Actualizar progreso en la vista
-    document.getElementById('draft-progress').textContent = `${draftProgress}/11`;
-    
-    // Redibujar campo
+    // Redibujar todo
     renderFieldSlots();
+    renderBoxScore();
     
-    // Limpiar panel de draft
-    const container = document.getElementById('draft-options-container');
-    container.innerHTML = `
-        <div style="text-align: center; color: var(--text-secondary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.8rem; padding: 2rem 0; text-transform: uppercase;">
-            Toca otro espacio en el campo para revelar jugadores
+    // Limpiar panel de ruleta y listado
+    document.getElementById('roulette-display').textContent = 'SELECCIONA SLOT';
+    document.getElementById('btn-spin-roulette').disabled = true;
+    document.getElementById('btn-resort-plantel').disabled = true;
+    
+    document.getElementById('draft-players-list').innerHTML = `
+        <div style="text-align: center; color: var(--text-secondary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; padding: 2rem 0; text-transform: uppercase;">
+            Toca otro slot vacío del campo y gira la ruleta
         </div>
     `;
-    document.getElementById('draft-pool-origin').textContent = `Plantel al azar asignado: --`;
     
-    // Si completamos el 11
+    document.getElementById('draft-instructions').textContent = 'Toca un círculo dashed del campo para seleccionarlo';
+    
+    // Comprobar si terminamos el draft
     if (draftProgress === 11) {
         document.getElementById('btn-advance-tournament').style.display = 'block';
-        document.getElementById('draft-instructions').textContent = '¡11 completado con éxito! Haz clic en el botón de abajo para registrar tu equipo.';
+        document.getElementById('draft-instructions').textContent = '¡11 COMPLETADO! Haz clic en el botón de abajo para avanzar.';
     }
 }
 
-// Recalcular la media general
+// Recalcular rating general
 function recalculateTeamRating() {
     const filled = dreamTeam.filter(p => p !== null);
     if (filled.length === 0) {
@@ -292,23 +457,20 @@ function recalculateTeamRating() {
         const sum = filled.reduce((acc, p) => acc + p.rating, 0);
         teamRating = sum / filled.length;
     }
-    
-    document.getElementById('draft-rating-badge').textContent = `Media: ${teamRating.toFixed(1)}`;
 }
 
-// Pasar a la pantalla de setup de torneo
+// Pasar a setup de torneo
 function goToTournamentSetup() {
     document.getElementById('summary-formation').textContent = selectedFormation;
     document.getElementById('summary-rating').textContent = teamRating.toFixed(1);
     switchScreen('screen-tournament-setup');
 }
 
-// Generar torneo y oponentes
+// Generar torneo y grupos (Copa de 32 equipos)
 function generateTournament() {
     teamName = document.getElementById('input-team-name').value.trim() || "U. DE CHILE HISTÓRICA";
     teamName = teamName.toUpperCase();
     
-    // Creamos los 32 equipos. El equipo 1 es el del usuario
     const userTeam = {
         id: 0,
         name: teamName,
@@ -320,13 +482,11 @@ function generateTournament() {
     
     tournamentTeams = [userTeam];
     
-    // Obtenemos los otros 31 rivales de los planteles de la BD
     const allPlanteles = window.plantelesData;
     const keys = Object.keys(allPlanteles);
     
     keys.forEach((key, idx) => {
         const p = allPlanteles[key];
-        // Calcular la media promedio del rival
         const sum = p.players.reduce((acc, pl) => acc + pl.rating, 0);
         const avg = sum / p.players.length;
         
@@ -340,7 +500,6 @@ function generateTournament() {
         });
     });
     
-    // Si faltan para llegar a 32 (nuestro dataset tiene 31, así que con el usuario es exactamente 32)
     while (tournamentTeams.length < 32) {
         tournamentTeams.push({
             id: tournamentTeams.length,
@@ -352,14 +511,11 @@ function generateTournament() {
         });
     }
     
-    // Barajar los rivales para asignarlos a los grupos
     const rivals = tournamentTeams.filter(t => !t.is_user);
     const shuffledRivals = rivals.sort(() => 0.5 - Math.random());
     
-    // Asignar al Grupo A con el usuario y otros 3 rivales
     groupStandings = [userTeam, shuffledRivals[0], shuffledRivals[1], shuffledRivals[2]];
     
-    // Resetear standings
     groupStandings.forEach(t => {
         t.pts = 0; t.pj = 0; t.gf = 0; t.gc = 0;
     });
@@ -367,7 +523,6 @@ function generateTournament() {
     currentMatchIndex = 0;
     tournamentStage = "groups";
     
-    // Switch de pantalla
     switchScreen('screen-tournament');
     document.getElementById('tournament-team-title').textContent = `MUNDIAL DE LEYENDAS · ${teamName}`;
     
@@ -376,9 +531,8 @@ function generateTournament() {
     setupNextMatchSimulation();
 }
 
-// Actualizar tabla del grupo en la pantalla
+// Actualizar tabla de grupo
 function updateGroupTable() {
-    // Ordenar standings por Puntos, Diferencia de Gol, Goles Favor
     const sorted = [...groupStandings].sort((a, b) => {
         if (b.pts !== a.pts) return b.pts - a.pts;
         const diffA = a.gf - a.gc;
@@ -400,7 +554,7 @@ function updateGroupTable() {
         
         row.innerHTML = `
             <td style="padding: 0.6rem 0; font-family: 'Montserrat', sans-serif; font-weight: 800; color: var(--text-primary);">
-                ${idx + 1}. ${team.name} <span style="font-size:0.7rem; color:var(--text-secondary);">(${team.rating.toFixed(1)})</span>
+                ${idx + 1}. ${team.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '')} <span style="font-size:0.7rem; color:var(--text-secondary);">(${team.rating.toFixed(1)})</span>
             </td>
             <td style="text-align: center; font-weight: 800; color: var(--text-primary);">${team.pts}</td>
             <td style="text-align: center; color: var(--text-secondary);">${team.pj}</td>
@@ -411,7 +565,7 @@ function updateGroupTable() {
     });
 }
 
-// Actualizar el listado del Fixture
+// Actualizar vista del Fixture
 function updateFixtureView() {
     const container = document.getElementById('fixture-matches-container');
     container.innerHTML = '';
@@ -419,7 +573,6 @@ function updateFixtureView() {
     if (tournamentStage === "groups") {
         document.getElementById('fixture-stage-title').textContent = 'Fase de Grupos (Clasifican 2)';
         
-        // Las 3 fechas del grupo del usuario
         const matches = [
             { stage: "Fecha 1", home: groupStandings[0], away: groupStandings[1], played: currentMatchIndex > 0 },
             { stage: "Fecha 2", home: groupStandings[0], away: groupStandings[2], played: currentMatchIndex > 1 },
@@ -435,13 +588,13 @@ function updateFixtureView() {
             row.style.border = '2px solid var(--text-primary)';
             if (idx === currentMatchIndex) {
                 row.style.background = 'rgba(37,99,235,0.04)';
-                row.style.borderColor = 'var(--udechile-red)';
+                row.style.borderColor = 'var(--accent-red)';
             }
             
             row.innerHTML = `
                 <span style="font-weight: 800; font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">${m.stage}</span>
                 <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; color: var(--text-primary);">
-                    ${m.home.name.substring(0, 15)} vs ${m.away.name.substring(0, 15)}
+                    ${m.home.name.substring(0, 14)} vs ${m.away.name.substring(0, 14)}
                 </span>
                 <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text-primary);">
                     ${m.played ? "JUGADO" : (idx === currentMatchIndex ? "POR JUGAR" : "PENDIENTE")}
@@ -450,7 +603,6 @@ function updateFixtureView() {
             container.appendChild(row);
         });
     } else {
-        // Fase de Playoffs
         document.getElementById('fixture-stage-title').textContent = playoffStageNames[playoffStageIndex];
         
         const row = document.createElement('div');
@@ -462,9 +614,9 @@ function updateFixtureView() {
         row.style.background = 'rgba(37,99,235,0.05)';
         
         row.innerHTML = `
-            <span style="font-weight: 800; font-size: 0.8rem; color: var(--udechile-red); text-transform: uppercase;">MANDATORIO</span>
+            <span style="font-weight: 800; font-size: 0.8rem; color: var(--accent-red); text-transform: uppercase;">MANDATORIO</span>
             <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: var(--text-primary);">
-                ${groupStandings[0].name.substring(0, 15)} vs ${playoffOpponent.name.substring(0, 15)}
+                ${groupStandings[0].name.substring(0, 14)} vs ${playoffOpponent.name.substring(0, 14)}
             </span>
             <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text-primary);">
                 PLAYOFFS
@@ -474,7 +626,7 @@ function updateFixtureView() {
     }
 }
 
-// Configurar los datos en la tarjeta del próximo partido de simulación
+// Configurar partido
 function setupNextMatchSimulation() {
     let home, away;
     
@@ -490,24 +642,22 @@ function setupNextMatchSimulation() {
         away = playoffOpponent;
     }
     
-    document.getElementById('sim-home-name').textContent = home.name;
+    document.getElementById('sim-home-name').textContent = home.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '');
     document.getElementById('sim-home-rating').textContent = `Media: ${home.rating.toFixed(1)}`;
-    document.getElementById('sim-away-name').textContent = away.name;
+    document.getElementById('sim-away-name').textContent = away.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '');
     document.getElementById('sim-away-rating').textContent = `Media: ${away.rating.toFixed(1)}`;
     document.getElementById('sim-scoreboard').textContent = "0 - 0";
     
-    // Ocultar bitácora anterior
     document.getElementById('sim-timer').style.display = 'none';
     document.getElementById('sim-events-log').style.display = 'none';
     document.getElementById('sim-events-log').innerHTML = '';
     
-    // Habilitar botón
     const btn = document.getElementById('btn-start-sim');
     btn.disabled = false;
     btn.textContent = "JUGAR PARTIDO";
 }
 
-// Simular el partido en tiempo real
+// Simular el partido activo
 function simulateActiveMatch() {
     const btn = document.getElementById('btn-start-sim');
     btn.disabled = true;
@@ -534,49 +684,41 @@ function simulateActiveMatch() {
     let scoreAway = 0;
     let minute = 0;
     
-    logEl.innerHTML += `<div>[00'] ¡PITAZO INICIAL! Arranca el partido en el coloso de Ñuñoa.</div>`;
+    logEl.innerHTML += `<div>[00'] ¡PITAZO INICIAL! Arranca el partido en el Estadio Nacional.</div>`;
     
-    // Motor de simulación en vivo por intervalos de tiempo
     const interval = setInterval(() => {
         minute += 5;
         timerEl.textContent = `${minute}'`;
         
-        // Simular eventos de goles en ciertos tramos
         const diff = home.rating - away.rating;
-        
-        // Probabilidades de gol basadas en la media
         const probHome = Math.max(0.01, Math.min(0.25, 0.07 + (diff * 0.012)));
         const probAway = Math.max(0.01, Math.min(0.25, 0.07 - (diff * 0.012)));
         
-        // Intentos de gol de Home (Usuario)
         if (Math.random() < probHome) {
             scoreHome++;
-            // Elegir goleador al azar
             const scorer = chooseScorer(home);
-            logEl.innerHTML += `<div style="color: #60A5FA;">[${minute}'] ¡GOOOOOL DE ${home.name}! Anota ${scorer} con un derechazo potente.</div>`;
+            logEl.innerHTML += `<div style="color: #60A5FA;">[${minute}'] ¡GOOOOOL DE ${home.name.replace(' (CAMPEÓN)', '')}! Anota ${scorer} con definición impecable.</div>`;
             document.getElementById('sim-scoreboard').textContent = `${scoreHome} - ${scoreAway}`;
             logEl.scrollTop = logEl.scrollHeight;
         }
         
-        // Intentos de gol de Away (Rival)
         if (Math.random() < probAway) {
             scoreAway++;
             const scorer = chooseScorer(away);
-            logEl.innerHTML += `<div style="color: #F87171;">[${minute}'] ¡Gol del rival ${away.name}! Marca ${scorer} tras un rebote en el área.</div>`;
+            logEl.innerHTML += `<div style="color: #F87171;">[${minute}'] ¡Gol del rival ${away.name.replace(' (CAMPEÓN)', '')}! Marca ${scorer}.</div>`;
             document.getElementById('sim-scoreboard').textContent = `${scoreHome} - ${scoreAway}`;
             logEl.scrollTop = logEl.scrollHeight;
         }
         
-        // Añadir incidencias aleatorias (tarjetas, tiros al palo, etc.)
         if (Math.random() < 0.08) {
             const teams = [home, away];
             const chosenTeam = teams[Math.floor(Math.random() * 2)];
-            const player = chooseScorer(chosenTeam); // Elegir un jugador cualquiera
+            const player = chooseScorer(chosenTeam);
             const incidents = [
-                `¡Tiro en el travesaño de ${player}! Se salva el pórtico.`,
-                `Tarjeta amarilla para ${player} por juego peligroso.`,
-                `Johnny Herrera desvía un remate a quemarropa de ${player}.`,
-                `¡Espectacular atajada del arquero frente al cabezazo de ${player}!`
+                `¡Zambombazo de ${player} al travesaño!`,
+                `Tarjeta amarilla para ${player} por juego fuerte.`,
+                `El arquero contiene un cabezazo letal de ${player}.`,
+                `¡Tiro libre peligroso ejecutado por ${player} desviado por el portero!`
             ];
             const msg = incidents[Math.floor(Math.random() * incidents.length)];
             logEl.innerHTML += `<div style="color: #94A3B8;">[${minute}'] ${msg}</div>`;
@@ -585,22 +727,19 @@ function simulateActiveMatch() {
         
         if (minute >= 90) {
             clearInterval(interval);
-            logEl.innerHTML += `<div style="font-weight: 800; margin-top:0.5rem;">[90'] ¡FINAL DEL PARTIDO! Marcador final: ${home.name} ${scoreHome} - ${scoreAway} ${away.name}.</div>`;
+            logEl.innerHTML += `<div style="font-weight: 800; margin-top:0.5rem;">[90'] ¡FINAL DEL PARTIDO! Marcador final: ${scoreHome} - ${scoreAway}.</div>`;
             logEl.scrollTop = logEl.scrollHeight;
             
-            // Procesar resultado final
             processMatchResult(scoreHome, scoreAway, home, away);
         }
     }, 400);
 }
 
-// Elegir goleador al azar de un plantel ponderado por su posicion
+// Goleador al azar
 function chooseScorer(team) {
     if (!team.players || team.players.length === 0) {
-        return "Leyenda de la U";
+        return "Leyenda Azul";
     }
-    
-    // Ponderación por posición
     const weighted = [];
     team.players.forEach(p => {
         let weight = 1;
@@ -613,14 +752,12 @@ function chooseScorer(team) {
             weighted.push(p.name);
         }
     });
-    
     return weighted[Math.floor(Math.random() * weighted.length)];
 }
 
-// Procesar el fin del partido y actualizar el torneo
+// Procesar partido
 function processMatchResult(scoreHome, scoreAway, home, away) {
     if (tournamentStage === "groups") {
-        // Actualizar puntos y goles del grupo del usuario
         home.pj++;
         away.pj++;
         home.gf += scoreHome;
@@ -637,12 +774,9 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
             away.pts += 1;
         }
         
-        // Simular el otro partido del grupo de forma rápida en background
         simulateOtherGroupMatches();
-        
         currentMatchIndex++;
         
-        // Actualizar UI
         updateGroupTable();
         updateFixtureView();
         
@@ -655,7 +789,6 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
                 setupNextMatchSimulation();
             };
         } else {
-            // Fin de la fase de grupos. Evaluar si clasificó
             const sorted = [...groupStandings].sort((a, b) => {
                 if (b.pts !== a.pts) return b.pts - a.pts;
                 const diffA = a.gf - a.gc;
@@ -667,10 +800,8 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
             const userRank = sorted.findIndex(t => t.is_user) + 1;
             
             if (userRank <= 2) {
-                // Avanza a Octavos
                 tournamentStage = "playoffs";
                 playoffStageIndex = 0;
-                // Seleccionar rival al azar de los clasificados del torneo
                 playoffOpponent = selectPlayoffOpponent();
                 
                 btn.textContent = "AVANZAR A OCTAVOS DE FINAL";
@@ -680,20 +811,15 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
                     setupNextMatchSimulation();
                 };
             } else {
-                // Eliminado en grupos
-                endGame(false, `Quedaste en el puesto #${userRank} del grupo de clasificación. ¡Casi logras la hazaña!`);
+                endGame(false, `Quedaste en el puesto #${userRank} del grupo. ¡Casi clasificas!`);
             }
         }
     } else {
-        // Modo Playoffs (Eliminación Directa)
         if (scoreHome > scoreAway) {
-            // Avanza de ronda
             advancePlayoffs();
         } else if (scoreHome < scoreAway) {
-            // Eliminado en playoffs
-            endGame(false, `Caíste derrotado en ${playoffStageNames[playoffStageIndex]} frente a ${away.name}. ¡Sigue intentándolo!`);
+            endGame(false, `Derrotado en ${playoffStageNames[playoffStageIndex]} frente a ${away.name.replace(' (CAMPEÓN)', '')}.`);
         } else {
-            // Empate: Simular penales al instante de forma dramática
             simulatePenalties(home, away);
         }
     }
@@ -702,83 +828,72 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
 // Simular penales en Playoffs
 function simulatePenalties(home, away) {
     const logEl = document.getElementById('sim-events-log');
-    logEl.innerHTML += `<div style="font-weight: 800; color: #EAB308; margin-top: 0.5rem;">[PENALES] ¡Empate en los 90 minutos! Nos vamos a la definición a penales.</div>`;
+    logEl.innerHTML += `<div style="font-weight: 800; color: #EAB308; margin-top: 0.5rem;">[PENALES] ¡Empate! Nos vamos a penales.</div>`;
     
     let pensHome = 0;
     let pensAway = 0;
     
-    // Simular 5 tiros reglamentarios
     for (let r = 1; r <= 5; r++) {
         const goalHome = Math.random() < 0.75;
         const goalAway = Math.random() < 0.75;
-        
         if (goalHome) pensHome++;
         if (goalAway) pensAway++;
     }
     
-    // Muerte súbita si empatan
     let attempts = 0;
     while (pensHome === pensAway && attempts < 15) {
         const goalHome = Math.random() < 0.75;
         const goalAway = Math.random() < 0.75;
-        
         if (goalHome) pensHome++;
         if (goalAway) pensAway++;
         attempts++;
     }
     
-    // En caso extremo
     if (pensHome === pensAway) {
         if (Math.random() < 0.5) pensHome++;
         else pensAway++;
     }
     
-    logEl.innerHTML += `<div style="font-weight: 800; color: #EAB308;">[PENALES] Marcador de Penales: ${home.name} ${pensHome} - ${pensAway} ${away.name}</div>`;
+    logEl.innerHTML += `<div style="font-weight: 800; color: #EAB308;">[PENALES] Tanda Final: ${pensHome} - ${pensAway}</div>`;
     logEl.scrollTop = logEl.scrollHeight;
     
     const btn = document.getElementById('btn-start-sim');
     btn.disabled = false;
     
     if (pensHome > pensAway) {
-        logEl.innerHTML += `<div style="color: #60A5FA; font-weight:800;">¡U. de Chile clasifica en tanda de penales espectacular! Johnny Herrera atajó el penal decisivo.</div>`;
+        logEl.innerHTML += `<div style="color: #60A5FA; font-weight:800;">¡U. de Chile clasifica en penales!</div>`;
         btn.textContent = "AVANZAR DE RONDA";
         btn.onclick = () => {
             advancePlayoffs();
         };
     } else {
-        logEl.innerHTML += `<div style="color: #F87171; font-weight:800;">¡Eliminados en penales! El meta rival contuvo el remate definitivo.</div>`;
+        logEl.innerHTML += `<div style="color: #F87171; font-weight:800;">¡Eliminados en penales!</div>`;
         btn.textContent = "VER RESULTADOS";
         btn.onclick = () => {
-            endGame(false, `Fuiste eliminado en penales en la ronda de ${playoffStageNames[playoffStageIndex]} frente a ${away.name}.`);
+            endGame(false, `Fuiste eliminado en penales en ${playoffStageNames[playoffStageIndex]} frente a ${away.name.replace(' (CAMPEÓN)', '')}.`);
         };
     }
 }
 
-// Avanzar en las rondas de Playoffs (Octavos -> Cuartos -> Semis -> Final -> Ganador)
+// Avanzar playoffs
 function advancePlayoffs() {
     playoffStageIndex++;
-    
-    const btn = document.getElementById('btn-start-sim');
-    
     if (playoffStageIndex < 4) {
-        // Siguiente rival en playoffs
         playoffOpponent = selectPlayoffOpponent();
         updateFixtureView();
         setupNextMatchSimulation();
     } else {
-        // ¡CAMPEÓN DEL MUNDO!
-        endGame(true, `¡Increíble hazaña! Tu Dream Team venció a todos los rivales históricos y se coronó Campeón del Torneo Mundial de Leyendas.`);
+        endGame(true, `¡Increíble hazaña! Tu Dream Team se coronó Campeón del Torneo Mundial de Leyendas.`);
     }
 }
 
-// Elegir un oponente al azar para la siguiente ronda de Playoffs
+// Oponente de playoffs
 function selectPlayoffOpponent() {
     const rivals = tournamentTeams.filter(t => !t.is_user);
-    const chosen = rivals[Math.floor(Math.random() * rivals.length)];
-    return chosen;
+    return rivals[Math.floor(Math.random() * rivals.length)];
 }
 
-// Simular el resto de los partidos del grupo de forma instantánea
+// Simular resto del grupo
 function simulateOtherGroupMatches() {
     let home, away;
     if (currentMatchIndex === 0) {
@@ -793,8 +908,6 @@ function simulateOtherGroupMatches() {
     }
     
     const diff = home.rating - away.rating;
-    
-    // Simulación simplificada basada en medias
     const probHome = 0.35 + (diff * 0.02);
     const probDraw = 0.30;
     
@@ -830,7 +943,7 @@ function simulateOtherGroupMatches() {
     }
 }
 
-// Terminar el juego y mostrar pantalla final
+// Fin del juego
 function endGame(isWinner, message) {
     switchScreen('screen-gameover');
     
@@ -848,18 +961,17 @@ function endGame(isWinner, message) {
     } else {
         icon.textContent = "❌";
         title.textContent = "ELIMINADO";
-        title.style.color = "var(--udechile-red)";
+        title.style.color = "var(--accent-red)";
         msg.textContent = message;
         if (btnSave) btnSave.style.display = 'none';
     }
 }
 
-// Enviar y guardar el Dream Team en el Muro de Honor mediante fetch API
+// Guardar
 function saveToHallOfFame() {
     const btn = document.getElementById('btn-save-muro');
     if (!btn) return;
     
-    const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.textContent = "GUARDANDO...";
     
@@ -872,9 +984,7 @@ function saveToHallOfFame() {
     
     fetch('/api/juego/guardar', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     })
     .then(res => {
@@ -886,16 +996,16 @@ function saveToHallOfFame() {
     })
     .then(data => {
         alert(data.message || "¡Tu equipo ha sido inmortalizado!");
-        window.location.href = "/juego"; // Redireccionar para ver el muro actualizado
+        window.location.href = "/juego";
     })
     .catch(err => {
         console.error(err);
         btn.disabled = false;
-        btn.innerHTML = originalText;
+        btn.textContent = "INMORTALIZAR EN MURO DE HONOR";
     });
 }
 
-// Reiniciar y volver a jugar
+// Reiniciar
 function restartGame() {
     switchScreen('screen-setup');
 }

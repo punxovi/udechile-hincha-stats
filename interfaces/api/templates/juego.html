@@ -5,17 +5,19 @@
 {% block content %}
 <style>
     :root {
-        --field-green: #1B4332;
-        --field-line: rgba(255, 255, 255, 0.4);
+        --field-green: #2C6E49;
+        --field-line: rgba(255, 255, 255, 0.45);
         --card-gold: #D4AF37;
+        --accent-red: var(--udechile-red);
     }
 
-    /* Contenedor del Juego */
+    /* Contenedor General */
     .game-container {
         display: flex;
         flex-direction: column;
         gap: 2rem;
         margin-bottom: 3rem;
+        min-height: 80vh;
     }
 
     /* Pantallas */
@@ -26,7 +28,7 @@
         display: block;
     }
 
-    /* Caja Brutalista General */
+    /* Caja Brutalista */
     .brutal-card {
         background: var(--card-bg);
         border: 4px solid var(--text-primary);
@@ -51,7 +53,7 @@
     /* Botones de Formación */
     .formation-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 1rem;
         margin-bottom: 2rem;
     }
@@ -61,8 +63,8 @@
         border: 2px solid var(--text-primary);
         font-family: 'Montserrat', sans-serif;
         font-weight: 800;
-        font-size: 1.2rem;
-        padding: 1rem;
+        font-size: 1.1rem;
+        padding: 0.8rem;
         cursor: pointer;
         box-shadow: 3px 3px 0px var(--text-primary);
         transition: all 0.1s ease;
@@ -87,7 +89,7 @@
 
     .mode-card {
         flex: 1;
-        min-width: 250px;
+        min-width: 240px;
         border: 3px solid var(--text-primary);
         padding: 1.5rem;
         cursor: pointer;
@@ -97,9 +99,8 @@
     }
 
     .mode-card:hover, .mode-card.active {
-        background: rgba(37, 99, 235, 0.08);
+        background: rgba(37, 99, 235, 0.05);
         border-color: var(--text-primary);
-        transform: translateY(-2px);
     }
 
     .mode-card.active {
@@ -112,40 +113,219 @@
         color: var(--bg-color);
     }
 
-    /* Grilla de Campo Táctico */
-    .tactical-setup {
+    /* LAYOUT TRES COLUMNAS DEL DRAFT */
+    .draft-layout {
         display: grid;
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: 320px 1fr 300px;
         gap: 2rem;
+        align-items: start;
     }
 
-    @media (max-width: 1024px) {
-        .tactical-setup {
-            grid-template-columns: 1fr;
+    @media (max-width: 1200px) {
+        .draft-layout {
+            grid-template-columns: 300px 1fr;
+        }
+        .col-right {
+            grid-column: span 2;
         }
     }
 
-    /* Campo de Fútbol Brutalista */
+    @media (max-width: 800px) {
+        .draft-layout {
+            grid-template-columns: 1fr;
+        }
+        .col-right {
+            grid-column: span 1;
+        }
+    }
+
+    /* COLUMNA IZQUIERDA (SORTEO Y SELECCIÓN) */
+    .col-left {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .spin-box {
+        border: 3px solid var(--text-primary);
+        background: var(--card-bg);
+        box-shadow: 4px 4px 0px var(--text-primary);
+        padding: 1.2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .spin-label {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .spin-display {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.8rem;
+        color: var(--accent-red);
+        line-height: 1.2;
+        margin: 0.5rem 0;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-transform: uppercase;
+        border: 2px dashed rgba(0,0,0,0.15);
+        padding: 0.5rem;
+    }
+
+    .spin-button-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .spin-btn {
+        background: var(--card-bg);
+        border: 2px solid var(--text-primary);
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.1rem;
+        padding: 0.6rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 2px 2px 0px var(--text-primary);
+        color: var(--text-primary);
+        font-weight: normal;
+    }
+
+    .spin-btn:hover:not(:disabled) {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        box-shadow: none;
+        transform: translate(2px, 2px);
+    }
+
+    .spin-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Lista de jugadores en la izquierda */
+    .player-select-list {
+        border: 3px solid var(--text-primary);
+        background: var(--card-bg);
+        box-shadow: 4px 4px 0px var(--text-primary);
+        padding: 1rem;
+        max-height: 350px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .player-select-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.6rem;
+        border: 2px solid var(--text-primary);
+        cursor: pointer;
+        transition: all 0.1s ease;
+        background: var(--card-bg);
+        color: var(--text-primary);
+    }
+
+    .player-select-item:hover {
+        background: rgba(37,99,235,0.05);
+        transform: translateY(-1px);
+    }
+
+    .player-select-item.selected {
+        background: var(--accent-red);
+        color: #FFF;
+        border-color: var(--text-primary);
+    }
+
+    .player-select-item.selected .item-rating {
+        color: #FFF;
+    }
+
+    .item-left {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 0.8rem;
+    }
+
+    .item-number {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        width: 25px;
+    }
+
+    .player-select-item.selected .item-number {
+        color: rgba(255,255,255,0.8);
+    }
+
+    .item-name {
+        text-transform: uppercase;
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .item-pos {
+        font-size: 0.65rem;
+        background: rgba(0,0,0,0.05);
+        padding: 2px 4px;
+        color: var(--text-secondary);
+    }
+
+    .player-select-item.selected .item-pos {
+        background: rgba(255,255,255,0.2);
+        color: #FFF;
+    }
+
+    .item-rating {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.5rem;
+        color: var(--text-primary);
+    }
+
+    /* COLUMNA CENTRO (CAMPO DE FÚTBOL) */
+    .col-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
     .soccer-field {
         background: var(--field-green);
         border: 4px solid var(--text-primary);
+        box-shadow: 6px 6px 0px var(--text-primary);
+        width: 100%;
+        max-width: 450px;
         aspect-ratio: 3/4;
         position: relative;
-        padding: 20px;
+        padding: 24px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         overflow: hidden;
-        box-shadow: 6px 6px 0px var(--text-primary);
     }
 
-    /* Líneas del campo */
-    .field-line {
-        position: absolute;
-        border: 2px solid var(--field-line);
-        pointer-events: none;
-    }
-
+    /* Líneas oficiales de la cancha */
     .field-center-circle {
         position: absolute;
         width: 100px;
@@ -155,6 +335,7 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+        pointer-events: none;
     }
 
     .field-center-line {
@@ -164,6 +345,7 @@
         border-top: 2px solid var(--field-line);
         top: 50%;
         left: 0;
+        pointer-events: none;
     }
 
     .field-penalty-area-top {
@@ -174,6 +356,7 @@
         border-top: none;
         top: 0;
         left: 20%;
+        pointer-events: none;
     }
 
     .field-penalty-area-bottom {
@@ -184,9 +367,9 @@
         border-bottom: none;
         bottom: 0;
         left: 20%;
+        pointer-events: none;
     }
 
-    /* Posiciones del Jugador (Slots) */
     .field-row {
         display: flex;
         justify-content: space-around;
@@ -195,13 +378,14 @@
         z-index: 2;
     }
 
-    .player-slot {
-        width: 75px;
-        height: 95px;
-        border: 2px dashed rgba(255, 255, 255, 0.6);
-        background: rgba(0, 0, 0, 0.4);
+    /* Slots de los Círculos del Campo */
+    .field-circle-slot {
+        width: 55px;
+        height: 55px;
+        border: 2px dashed rgba(255, 255, 255, 0.7);
+        border-radius: 50%;
+        background: rgba(0,0,0,0.3);
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
         cursor: pointer;
@@ -209,126 +393,164 @@
         position: relative;
     }
 
-    .player-slot:hover:not(.filled) {
-        background: rgba(255, 255, 255, 0.2);
+    .field-circle-slot:hover:not(.filled) {
+        transform: scale(1.1);
         border-color: #FFF;
-        transform: scale(1.05);
-    }
-
-    .player-slot.active-slot {
-        border: 2px solid #FFF;
         background: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
 
-    .player-slot.filled {
-        border: 2px solid var(--text-primary);
-        background: var(--card-bg);
+    .field-circle-slot.active-slot {
+        border: 3.5px solid #FFF;
+        box-shadow: 0 0 12px rgba(255,255,255,0.7);
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    .field-circle-slot.filled {
+        background: #FFF;
+        border: 3px solid var(--text-primary);
         box-shadow: 3px 3px 0px var(--text-primary);
     }
 
-    .slot-pos-badge {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 800;
-        font-size: 0.7rem;
-        background: var(--text-primary);
-        color: var(--bg-color);
-        padding: 2px 6px;
-        border-radius: 2px;
-        margin-bottom: 4px;
-        text-transform: uppercase;
-    }
-
-    .slot-empty-text {
+    .circle-pos-label {
         font-family: 'Bebas Neue', sans-serif;
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
     }
 
-    /* Estilo de Carta de Futbolista en el Slot */
-    .slot-card-name {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 800;
-        font-size: 0.65rem;
-        text-align: center;
-        color: var(--text-primary);
-        line-height: 1.1;
-        width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        padding: 0 4px;
-        text-transform: uppercase;
-    }
-
-    .slot-card-rating {
+    .filled-rating {
         font-family: 'Bebas Neue', sans-serif;
         font-size: 1.6rem;
         color: var(--text-primary);
         line-height: 1;
     }
 
-    .slot-card-year {
+    .filled-name-badge {
+        position: absolute;
+        bottom: -22px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--text-primary);
+        color: var(--bg-color);
         font-family: 'Montserrat', sans-serif;
-        font-size: 0.55rem;
-        color: var(--text-secondary);
         font-weight: 800;
+        font-size: 0.58rem;
+        padding: 2px 6px;
+        text-transform: uppercase;
+        white-space: nowrap;
+        border: 1px solid var(--text-primary);
+        box-shadow: 1px 1px 0px var(--text-primary);
+        max-width: 70px;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    /* Panel del Draft (Derecha) */
-    .draft-panel {
+    /* COLUMNA DERECHA (BOX SCORE / ALINEACIÓN) */
+    .col-right {
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
     }
 
-    .draft-options {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    /* Cartas del Draft */
-    .player-card {
+    .box-score-card {
         border: 3px solid var(--text-primary);
         background: var(--card-bg);
-        padding: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        cursor: pointer;
         box-shadow: 4px 4px 0px var(--text-primary);
-        transition: all 0.1s ease;
+        padding: 1.2rem;
     }
 
-    .player-card:hover {
-        transform: translate(-2px, -2px);
-        box-shadow: 6px 6px 0px var(--text-primary);
-        background: rgba(37, 99, 235, 0.05);
-    }
-
-    .player-card.selected {
-        background: var(--text-primary);
-        color: var(--bg-color);
-    }
-
-    .card-rating-badge {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 2.8rem;
-        line-height: 1;
-        color: var(--text-primary);
-        border-right: 3px solid var(--text-primary);
-        padding-right: 0.8rem;
-        margin-right: 0.8rem;
+    .box-score-header {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-        min-width: 55px;
+        border-bottom: 2px solid var(--text-primary);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
     }
 
-    .player-card.selected .card-rating-badge {
-        color: var(--bg-color);
-        border-color: var(--bg-color);
+    .box-score-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.6rem;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .box-score-rating-huge {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 3.2rem;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    /* Barra de Balance */
+    .balance-container {
+        margin-bottom: 1.2rem;
+    }
+
+    .balance-label {
+        display: flex;
+        justify-content: space-between;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 0.65rem;
+        color: var(--text-primary);
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+    }
+
+    .balance-bar-bg {
+        height: 8px;
+        background: var(--text-secondary);
+        position: relative;
+        border: 1px solid var(--text-primary);
+    }
+
+    .balance-bar-fill {
+        height: 100%;
+        background: var(--accent-red);
+        width: 50%;
+        transition: width 0.3s ease;
+    }
+
+    /* Lista Box Score */
+    .box-score-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .box-score-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.2rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .box-score-row-pos {
+        font-weight: 800;
+        color: var(--text-secondary);
+        width: 40px;
+        text-transform: uppercase;
+    }
+
+    .box-score-row-name {
+        color: var(--text-primary);
+        text-transform: uppercase;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding-right: 0.5rem;
+    }
+
+    .box-score-row-rating {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: var(--text-primary);
     }
 
     /* Muro de Honor Grid */
@@ -346,7 +568,7 @@
         position: relative;
     }
 
-    /* Simulación Torneo */
+    /* Torneo */
     .tournament-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -396,7 +618,7 @@
                         </p>
                     </div>
                     <div class="mode-card" id="mode-champions" onclick="selectMode('champions')">
-                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; margin-bottom: 0.5rem; text-transform: uppercase; color: var(--udechile-red);">Modo Solo Campeones</h3>
+                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; margin-bottom: 0.5rem; text-transform: uppercase; color: var(--accent-red);">Modo Solo Campeones</h3>
                         <p style="font-size: 0.8rem; line-height: 1.4; font-family: 'Montserrat', sans-serif;">
                             Solo reclutas jugadores pertenecientes a los 18 planteles campeones de Primera División de la U de Chile.
                         </p>
@@ -468,22 +690,55 @@
     <!-- PANTALLA 2: EL DRAFT -->
     <div id="screen-draft" class="game-screen">
         <div class="brutal-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--text-primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
-                <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; margin: 0; color: var(--text-primary);">
-                    CONFORMACIÓN DE PLANTEL (<span id="draft-progress">0/11</span>)
-                </h2>
-                <span id="draft-rating-badge" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--text-primary); background: var(--card-bg); border: 2px solid var(--text-primary); padding: 0.2rem 1rem;">
-                    Media: --
-                </span>
-            </div>
             
-            <p style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 1.5rem;" id="draft-instructions">
-                Haz clic en una posición vacía del campo táctico para reclutar un jugador.
-            </p>
+            <div class="draft-layout">
+                
+                <!-- COLUMNA 1 (IZQUIERDA): SORTEO Y SELECCIÓN -->
+                <div class="col-left">
+                    
+                    <!-- Tarjeta de Sorteo / Ruleta -->
+                    <div class="spin-box">
+                        <span class="spin-label">Salió Plantel</span>
+                        <div class="spin-display" id="roulette-display">
+                            SELECCIONA SLOT
+                        </div>
+                        
+                        <span id="resort-count-label" style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 0.5rem;">
+                            ¿No te gustó? Re-sortea · 3 restantes
+                        </span>
+                        
+                        <div class="spin-button-container">
+                            <button id="btn-spin-roulette" class="spin-btn" onclick="startRouletteSpin()" disabled>
+                                <i data-lucide="shuffle" style="width: 1.1rem; height: 1.1rem;"></i>
+                                GIRAR RULETA
+                            </button>
+                            <button id="btn-resort-plantel" class="spin-btn" onclick="resortPlantel()" disabled style="border-color: var(--accent-red); color: var(--text-primary);">
+                                <i data-lucide="refresh-cw" style="width: 1.1rem; height: 1.1rem; color: var(--accent-red);"></i>
+                                RE-SORTEAR
+                            </button>
+                        </div>
+                    </div>
 
-            <div class="tactical-setup">
-                <!-- Columna Izquierda: El campo -->
-                <div>
+                    <!-- Listado de Jugadores del Plantel Sorteado -->
+                    <div>
+                        <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--text-primary); text-transform: uppercase; margin-bottom: 0.5rem; display: block;">
+                            Elige un jugador
+                        </span>
+                        <div class="player-select-list" id="draft-players-list">
+                            <div style="text-align: center; color: var(--text-secondary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; padding: 2rem 0; text-transform: uppercase;">
+                                Toca un slot vacío del campo y gira la ruleta
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- COLUMNA 2 (CENTRO): CAMPO DE FÚTBOL -->
+                <div class="col-center">
+                    <span style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; text-align: center;" id="draft-instructions">
+                        Toca un círculo dashed del campo para seleccionarlo
+                    </span>
+                    
                     <div class="soccer-field" id="interactive-field">
                         <!-- Líneas decorativas -->
                         <div class="field-center-circle"></div>
@@ -491,34 +746,51 @@
                         <div class="field-penalty-area-top"></div>
                         <div class="field-penalty-area-bottom"></div>
 
-                        <!-- Las filas de jugadores se inyectarán dinámicamente -->
+                        <!-- Las filas se inyectan dinámicamente -->
                         <div id="field-rows-container" style="height: 100%; display: flex; flex-direction: column; justify-content: space-around;"></div>
                     </div>
-                </div>
 
-                <!-- Columna Derecha: Panel del Draft / Jugadores disponibles -->
-                <div class="draft-panel">
-                    <div class="brutal-card" style="padding: 1.2rem; box-shadow: 4px 4px 0px var(--text-primary); border-width: 3px;" id="panel-draft-options">
-                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--text-primary); margin-bottom: 0.3rem;" id="draft-panel-title">
-                            Selección de Jugador
-                        </h3>
-                        <span id="draft-pool-origin" style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--udechile-red); text-transform: uppercase; display: block; margin-bottom: 1rem;">
-                            Plantel al azar asignado: --
-                        </span>
-
-                        <div class="draft-options" id="draft-options-container">
-                            <!-- Aquí se inyectan las cartas del draft -->
-                            <div style="text-align: center; color: var(--text-secondary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.8rem; padding: 2rem 0; text-transform: uppercase;">
-                                Toca un espacio en el campo para revelar jugadores
-                            </div>
-                        </div>
-                    </div>
-
-                    <button id="btn-advance-tournament" class="btn-primary" style="display: none; padding: 1rem; font-size: 1.2rem; text-align: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;" onclick="goToTournamentSetup()">
+                    <button id="btn-advance-tournament" class="btn-primary" style="display: none; padding: 1rem 2rem; font-size: 1.2rem; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;" onclick="goToTournamentSetup()">
                         AVANZAR AL TORNEO MUNDIAL
                     </button>
                 </div>
+
+                <!-- COLUMNA 3 (DERECHA): BOX SCORE / STATUS -->
+                <div class="col-right">
+                    <div class="box-score-card">
+                        <div class="box-score-header">
+                            <div>
+                                <h3 class="box-score-title">BOX SCORE</h3>
+                                <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--text-secondary);" id="box-score-count">
+                                    0 / 11
+                                </span>
+                            </div>
+                            <div class="box-score-rating-huge" id="box-score-rating">
+                                --
+                            </div>
+                        </div>
+
+                        <!-- Barra de Balance de Línea -->
+                        <div class="balance-container">
+                            <div class="balance-label">
+                                <span>Ataque</span>
+                                <span id="balance-ratio-text">50% / 50%</span>
+                                <span>Defensa</span>
+                            </div>
+                            <div class="balance-bar-bg">
+                                <div class="balance-bar-fill" id="balance-bar-fill"></div>
+                            </div>
+                        </div>
+
+                        <!-- Lista de las 11 posiciones fijas de la formación -->
+                        <div class="box-score-list" id="box-score-positions-list">
+                            <!-- Inyectado dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+
             </div>
+
         </div>
     </div>
 
@@ -591,7 +863,7 @@
                 <div class="draft-panel">
                     <!-- Caja de Partido Activo -->
                     <div class="brutal-card" style="border-width: 3px; box-shadow: 4px 4px 0px var(--text-primary); padding: 1.5rem; text-align: center;" id="panel-match-simulation">
-                        <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--udechile-red); text-transform: uppercase; display: block; margin-bottom: 0.5rem;" id="match-sim-phase">
+                        <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--accent-red); text-transform: uppercase; display: block; margin-bottom: 0.5rem;" id="match-sim-phase">
                             Próximo Partido
                         </span>
                         
@@ -677,5 +949,5 @@
 </script>
 
 <!-- Script principal del juego -->
-<script src="{{ url_for('static', path='/juego.js') }}?v=1.0"></script>
+<script src="{{ url_for('static', path='/juego.js') }}?v=1.1"></script>
 {% endblock %}
