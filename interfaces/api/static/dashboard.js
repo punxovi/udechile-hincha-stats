@@ -324,3 +324,13 @@ function exportDashboardImage() {
         }
     });
 }
+
+// Hook global llamado desde base.html al alternar el tema
+window.updateChartTheme = (theme) => {
+    // Retrasar levemente para permitir al DOM actualizar los estilos
+    setTimeout(() => {
+        if (currentSnapshotData) {
+            drawChart(currentSnapshotData);
+        }
+    }, 50);
+};
