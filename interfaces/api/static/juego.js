@@ -519,8 +519,11 @@ function generateTournament() {
     const allPlanteles = window.plantelesData;
     const keys = Object.keys(allPlanteles);
     
-    keys.forEach((key, idx) => {
+    keys.forEach((key) => {
         const p = allPlanteles[key];
+        // Solo planteles campeones del club como rivales en el torneo
+        if (p.is_champion !== true) return;
+        
         const sum = p.players.reduce((acc, pl) => acc + pl.rating, 0);
         let avg = sum / p.players.length;
         
@@ -530,7 +533,7 @@ function generateTournament() {
         }
         
         tournamentTeams.push({
-            id: idx + 1,
+            id: tournamentTeams.length,
             name: p.name.toUpperCase(),
             rating: avg,
             is_user: false,
