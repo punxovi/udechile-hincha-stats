@@ -1085,25 +1085,9 @@ function endGame(isWinner, message) {
 
 // Reiniciar juego
 function restartGame() {
-    dreamTeam = Array(11).fill(null);
-    draftProgress = 0;
-    teamRating = 0.0;
-    resortCount = 2;
-    currentSorteadoPlantel = null;
-    selectedPlayerToPlace = null;
-    availablePlantelKeys = [];
-    
-    tournamentStage = "groups";
-    currentMatchIndex = 0;
-    tournamentTeams = [];
-    groupStandings = [];
-    playoffOpponent = null;
-    playoffStageIndex = 0;
-    
     sessionStorage.removeItem('gameover_winner');
     sessionStorage.removeItem('gameover_msg');
-    
-    switchScreen('screen-setup');
+    window.location.reload();
 }
 
 // Guardar
