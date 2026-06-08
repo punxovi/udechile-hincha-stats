@@ -339,7 +339,15 @@ function renderFullPlantelList(plantel) {
     const container = document.getElementById('draft-players-list');
     container.innerHTML = '';
     
-    const sortedPlayers = [...plantel.players].sort((a, b) => b.rating - a.rating);
+    const posOrder = { 'ARQ': 1, 'DEF': 2, 'MED': 3, 'DEL': 4 };
+    const sortedPlayers = [...plantel.players].sort((a, b) => {
+        const orderA = posOrder[a.pos] || 99;
+        const orderB = posOrder[b.pos] || 99;
+        if (orderA !== orderB) {
+            return orderA - orderB;
+        }
+        return b.rating - a.rating;
+    });
     
     sortedPlayers.forEach((player, idx) => {
         const category = player.pos;
