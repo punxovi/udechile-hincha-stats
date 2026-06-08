@@ -39,7 +39,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "1962": {
-        "name": "U. de Chile 1962 (Ballet Azul - Campeón Invicto Local)",
+        "name": "U. de Chile 1962 (Ballet Azul - Tercera Estrella)",
         "is_champion": True,
         "year": 1962,
         "players": [
