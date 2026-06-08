@@ -346,7 +346,7 @@ function renderFullPlantelList(plantel) {
         if (orderA !== orderB) {
             return orderA - orderB;
         }
-        return b.rating - a.rating;
+        return a.name.localeCompare(b.name);
     });
     
     sortedPlayers.forEach((player, idx) => {
