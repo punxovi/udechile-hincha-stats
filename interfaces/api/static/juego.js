@@ -7,10 +7,10 @@ let dreamTeam = Array(11).fill(null);
 let draftProgress = 0;
 let teamRating = 0.0;
 
-// Variables de Ruleta
+// Variables de Ruleta y Draft
 let resortCount = 3;
 let currentSorteadoPlantel = null;
-let currentDraftOptions = [];
+let selectedPlayerToPlace = null; // Jugador seleccionado de la lista esperando ser ubicado
 let rouletteInterval = null;
 let isSpinning = false;
 
@@ -100,10 +100,9 @@ function startDraft() {
     draftProgress = 0;
     teamRating = 0.0;
     resortCount = 3;
-    activeSlotIndex = null;
+    selectedPlayerToPlace = null;
     isSpinning = false;
     currentSorteadoPlantel = null;
-    currentDraftOptions = [];
     
     // Switch de pantalla
     switchScreen('screen-draft');
@@ -115,14 +114,16 @@ function startDraft() {
     renderFieldSlots();
     renderBoxScore();
     
-    // Limpiar ruleta e inputs
-    document.getElementById('roulette-display').textContent = 'SELECCIONA SLOT';
-    document.getElementById('btn-spin-roulette').disabled = true;
+    // Activar ruleta de inmediato
+    document.getElementById('roulette-display').textContent = 'PRESIONA GIRAR';
+    document.getElementById('btn-spin-roulette').disabled = false;
     document.getElementById('btn-resort-plantel').disabled = true;
+    
+    document.getElementById('draft-instructions').textContent = 'Gira la ruleta de planteles para iniciar la ronda 1';
     
     document.getElementById('draft-players-list').innerHTML = `
         <div style="text-align: center; color: var(--text-secondary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; padding: 2rem 0; text-transform: uppercase;">
-            Toca un slot dashed del campo y gira la ruleta
+            Gira la ruleta para revelar el primer plantel
         </div>
     `;
 }
@@ -141,14 +142,13 @@ function updateResortLabels() {
     }
 }
 
-// Renderizar grilla del campo tactico de circulos
+// Renderizar grilla del campo tactico de circulos (con estado inactivo por defecto)
 function renderFieldSlots() {
     const container = document.getElementById('field-rows-container');
     container.innerHTML = '';
     
     const slots = FORMACIONES[selectedFormation];
     
-    // Dividir en filas de abajo hacia arriba (1=ARQ, 2=DEF, 3=MED, 4=DEL)
     for (let r = 4; r >= 1; r--) {
         const rowSlots = slots.filter(s => s.row === r);
         const rowDiv = document.createElement('div');
@@ -158,12 +158,7 @@ function renderFieldSlots() {
             const slotEl = document.createElement('div');
             slotEl.id = `circle-slot-${slot.id}`;
             slotEl.className = 'field-circle-slot';
-            slotEl.onclick = () => selectSlot(slot.id, slot.pos);
-            
-            // Si el slot activo esta seleccionado
-            if (activeSlotIndex === slot.id) {
-                slotEl.classList.add('active-slot');
-            }
+            // No tiene click directo a menos que se este ubicando un jugador de esa posicion
             
             // Si tiene jugador asignado
             const player = dreamTeam[slot.id];
@@ -259,37 +254,17 @@ function calculateTeamBalance() {
     ratioText.textContent = `${atkPct}% / ${defPct}%`;
 }
 
-// Activar slot para sorteo
-function selectSlot(slotId, pos) {
-    if (dreamTeam[slotId] !== null || isSpinning) return;
-    
-    activeSlotIndex = slotId;
-    
-    // Redibujar slots para marcar activo
-    renderFieldSlots();
-    
-    // Habilitar boton de girar ruleta
-    document.getElementById('btn-spin-roulette').disabled = false;
-    document.getElementById('btn-resort-plantel').disabled = true;
-    document.getElementById('roulette-display').textContent = 'PRESIONA GIRAR';
-    
-    document.getElementById('draft-instructions').textContent = `Slot activo: ${FORMACIONES[selectedFormation][slotId].label}. Gira la ruleta para ver planteles.`;
-    
-    // Limpiar lista de jugadores anterior
-    document.getElementById('draft-players-list').innerHTML = `
-        <div style="text-align: center; color: var(--text-secondary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; padding: 2rem 0; text-transform: uppercase;">
-            Gira la ruleta para revelar futbolistas
-        </div>
-    `;
-}
-
-// Iniciar animacion de ruleta en tiempo real
+// Iniciar animación de ruleta de planteles
 function startRouletteSpin() {
-    if (activeSlotIndex === null || isSpinning) return;
+    if (isSpinning || draftProgress >= 11) return;
     
     isSpinning = true;
+    selectedPlayerToPlace = null;
     document.getElementById('btn-spin-roulette').disabled = true;
     document.getElementById('btn-resort-plantel').disabled = true;
+    
+    // Quitar cualquier destaque previo de la cancha
+    renderFieldSlots();
     
     const display = document.getElementById('roulette-display');
     const allPlanteles = window.plantelesData;
@@ -301,45 +276,22 @@ function startRouletteSpin() {
         eligibleKeys = keys.filter(k => allPlanteles[k].is_champion === true);
     }
     
-    const targetSlot = FORMACIONES[selectedFormation][activeSlotIndex];
+    // Seleccionar plantel al azar
+    const randomKey = eligibleKeys[Math.floor(Math.random() * eligibleKeys.length)];
+    const targetPlantel = allPlanteles[randomKey];
     
-    // Buscamos un plantel al azar de antemano que contenga al menos un jugador en esa posicion
-    let selectedPlantelKey = null;
-    let eligiblePlayers = [];
-    let attempts = 0;
-    
-    while (attempts < 50) {
-        const randomKey = eligibleKeys[Math.floor(Math.random() * eligibleKeys.length)];
-        const p = allPlanteles[randomKey];
-        eligiblePlayers = p.players.filter(pl => pl.pos === targetSlot.pos);
-        if (eligiblePlayers.length > 0) {
-            selectedPlantelKey = randomKey;
-            break;
-        }
-        attempts++;
-    }
-    
-    if (!selectedPlantelKey) {
-        selectedPlantelKey = eligibleKeys[0];
-        eligiblePlayers = allPlanteles[selectedPlantelKey].players;
-    }
-    
-    const targetPlantel = allPlanteles[selectedPlantelKey];
-    
-    // Animación de la ruleta (ciclado rapido desacelerando)
-    let speed = 40; // ms por ciclo
+    // Animación de la ruleta (ciclado rápido desacelerando)
+    let speed = 40; 
     let duration = 0;
-    const maxDuration = 1800; // 1.8 segundos de giro
+    const maxDuration = 1800; // 1.8 segundos
     
     function spinCycle() {
-        // Mostrar un plantel al azar en el display
-        const randomKey = eligibleKeys[Math.floor(Math.random() * eligibleKeys.length)];
-        display.textContent = allPlanteles[randomKey].name.replace(' (Campeón)', '').replace(' (Ballet Azul)', '').replace(' (Matador Salas)', '').replace(' (Racha Invicto)', '').replace(' (Vaccia)', '').replace(' (Apertura)', '').replace(' (Sampaoli)', '').replace(' (Triplete)', '').replace(' (Copa Chile)', '').replace(' (Soteldo)', '').replace(' (Transición)', '').replace(' (Larrivey)', '').replace(' (Osorio/Assadi)', '').replace(' (Pellegrino)', '').replace(' (Álvarez)', '').replace(' (Actual)', '').replace(' (Finalista)', '').replace(' (Semifinalista)', '');
+        const tempKey = eligibleKeys[Math.floor(Math.random() * eligibleKeys.length)];
+        display.textContent = allPlanteles[tempKey].name.replace(' (Campeón)', '').replace(' (Ballet Azul)', '').replace(' (Matador Salas)', '').replace(' (Racha Invicto)', '').replace(' (Vaccia)', '').replace(' (Apertura)', '').replace(' (Sampaoli)', '').replace(' (Triplete)', '').replace(' (Copa Chile)', '').replace(' (Soteldo)', '').replace(' (Transición)', '').replace(' (Larrivey)', '').replace(' (Osorio/Assadi)', '').replace(' (Pellegrino)', '').replace(' (Álvarez)', '').replace(' (Actual)', '').replace(' (Finalista)', '').replace(' (Semifinalista)', '').toUpperCase();
         
         duration += speed;
         
         if (duration < maxDuration) {
-            // Desacelerar gradualmente aumentando el tiempo de espera
             if (duration > maxDuration * 0.7) {
                 speed += 25;
             } else if (duration > maxDuration * 0.4) {
@@ -351,14 +303,11 @@ function startRouletteSpin() {
             display.textContent = targetPlantel.name.toUpperCase();
             currentSorteadoPlantel = targetPlantel;
             
-            // Elegir hasta 4 opciones de jugadores de esa posicion en el plantel sorteado
-            const shuffled = [...eligiblePlayers].sort(() => 0.5 - Math.random());
-            currentDraftOptions = shuffled.slice(0, 4);
-            
-            // Dibujar la lista de jugadores en la columna izquierda
-            renderDraftPlayersList(currentDraftOptions, targetPlantel.year);
+            // Revelar la totalidad del plantel en el panel de la izquierda
+            renderFullPlantelList(targetPlantel);
             
             isSpinning = false;
+            document.getElementById('draft-instructions').textContent = 'Elige un jugador habilitado del plantel en la lista de la izquierda';
             
             // Habilitar re-sorteo si le quedan
             if (resortCount > 0) {
@@ -370,81 +319,138 @@ function startRouletteSpin() {
     spinCycle();
 }
 
-// Dibujar lista de jugadores en la izquierda
-function renderDraftPlayersList(players, year) {
+// Renderizar la totalidad del plantel en la lista de la izquierda
+function renderFullPlantelList(plantel) {
     const container = document.getElementById('draft-players-list');
     container.innerHTML = '';
     
-    players.forEach((player, idx) => {
+    // Ordenar jugadores por rating descendente para comodidad visual
+    const sortedPlayers = [...plantel.players].sort((a, b) => b.rating - a.rating);
+    
+    sortedPlayers.forEach((player, idx) => {
+        const category = player.pos; // 'ARQ', 'DEF', 'MED', 'DEL'
+        
+        // Calcular si la posicion en el 11 ya esta completa
+        const totalSlotsOfCategory = FORMACIONES[selectedFormation].filter(s => s.pos === category).length;
+        const filledSlotsOfCategory = dreamTeam.filter((p, sIdx) => p !== null && FORMACIONES[selectedFormation][sIdx].pos === category).length;
+        const slotsFree = totalSlotsOfCategory - filledSlotsOfCategory;
+        
+        const isFull = slotsFree <= 0;
+        
         const item = document.createElement('div');
         item.className = 'player-select-item';
-        item.onclick = () => recruitPlayer(player, year);
         
-        // Numero dorsal ficticio
-        const number = `#${idx + 10}`;
-        
-        item.innerHTML = `
-            <div class="item-left">
-                <span class="item-number">${number}</span>
-                <span class="item-name">${player.name}</span>
-                <span class="item-pos">${player.pos}</span>
-            </div>
-            <span class="item-rating">${player.rating}</span>
-        `;
+        if (isFull) {
+            // Deshabilitar visualmente
+            item.style.opacity = '0.35';
+            item.style.pointerEvents = 'none';
+            item.innerHTML = `
+                <div class="item-left">
+                    <span class="item-number">#${idx + 1}</span>
+                    <span class="item-name" style="text-decoration: line-through;">${player.name}</span>
+                    <span class="item-pos">${player.pos}</span>
+                </div>
+                <span class="item-rating" style="font-size:0.7rem; font-family:'Montserrat',sans-serif; font-weight:800; color:var(--accent-red);">LLENO</span>
+            `;
+        } else {
+            // Habilitar selección
+            item.onclick = () => selectPlayerForPlacement(player, item);
+            item.innerHTML = `
+                <div class="item-left">
+                    <span class="item-number">#${idx + 1}</span>
+                    <span class="item-name">${player.name}</span>
+                    <span class="item-pos">${player.pos}</span>
+                </div>
+                <span class="item-rating">${player.rating}</span>
+            `;
+        }
         
         container.appendChild(item);
     });
 }
 
-// Re-sortear plantel para el slot activo
+// Re-sortear plantel
 function resortPlantel() {
-    if (resortCount <= 0 || isSpinning || activeSlotIndex === null) return;
-    
+    if (resortCount <= 0 || isSpinning) return;
     resortCount--;
     updateResortLabels();
-    
-    // Volver a girar
     startRouletteSpin();
 }
 
-// Reclutar y asignar el jugador elegido
-function recruitPlayer(player, year) {
-    if (activeSlotIndex === null || isSpinning) return;
+// Al seleccionar un jugador de la lista
+function selectPlayerForPlacement(player, itemEl) {
+    if (isSpinning) return;
     
-    dreamTeam[activeSlotIndex] = {
-        name: player.name,
-        pos: player.pos,
-        rating: player.rating,
-        year: year
+    // Desmarcar selecciones previas de la lista
+    document.querySelectorAll('.player-select-item').forEach(el => el.classList.remove('selected'));
+    
+    // Marcar el actual
+    itemEl.classList.add('selected');
+    selectedPlayerToPlace = player;
+    
+    // Redibujar campo base para limpiar destaques previos
+    renderFieldSlots();
+    
+    // Destacar en el campo de fútbol los slots vacíos correspondientes a su posición
+    const category = player.pos;
+    const slots = FORMACIONES[selectedFormation];
+    let highlightedCount = 0;
+    
+    slots.forEach(slot => {
+        if (slot.pos === category && dreamTeam[slot.id] === null) {
+            const circle = document.getElementById(`circle-slot-${slot.id}`);
+            if (circle) {
+                circle.classList.add('highlight-slot');
+                circle.onclick = () => placePlayerInSlot(slot.id);
+                highlightedCount++;
+            }
+        }
+    });
+    
+    document.getElementById('draft-instructions').textContent = `Toca un círculo parpadeante en la cancha para posicionar a ${player.name} (${player.pos})`;
+}
+
+// Ubicar jugador en el slot elegido
+function placePlayerInSlot(slotId) {
+    if (!selectedPlayerToPlace) return;
+    
+    // Guardar en dreamTeam
+    dreamTeam[slotId] = {
+        name: selectedPlayerToPlace.name,
+        pos: selectedPlayerToPlace.pos,
+        rating: selectedPlayerToPlace.rating,
+        year: currentSorteadoPlantel.year
     };
     
     draftProgress++;
-    activeSlotIndex = null;
+    selectedPlayerToPlace = null;
     
-    // Recalcular media
+    // Recalcular rating
     recalculateTeamRating();
     
     // Redibujar todo
     renderFieldSlots();
     renderBoxScore();
     
-    // Limpiar panel de ruleta y listado
-    document.getElementById('roulette-display').textContent = 'SELECCIONA SLOT';
-    document.getElementById('btn-spin-roulette').disabled = true;
+    // Limpiar panel de la izquierda y restablecer ruleta
+    document.getElementById('roulette-display').textContent = 'PRESIONA GIRAR';
+    document.getElementById('btn-spin-roulette').disabled = false;
     document.getElementById('btn-resort-plantel').disabled = true;
     
     document.getElementById('draft-players-list').innerHTML = `
         <div style="text-align: center; color: var(--text-secondary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; padding: 2rem 0; text-transform: uppercase;">
-            Toca otro slot vacío del campo y gira la ruleta
+            Gira la ruleta para la siguiente ronda (${draftProgress + 1}/11)
         </div>
     `;
     
-    document.getElementById('draft-instructions').textContent = 'Toca un círculo dashed del campo para seleccionarlo';
+    document.getElementById('draft-instructions').textContent = 'Gira la ruleta de planteles para la siguiente ronda';
     
-    // Comprobar si terminamos el draft
+    // Comprobar si completamos el 11
     if (draftProgress === 11) {
         document.getElementById('btn-advance-tournament').style.display = 'block';
-        document.getElementById('draft-instructions').textContent = '¡11 COMPLETADO! Haz clic en el botón de abajo para avanzar.';
+        document.getElementById('btn-spin-roulette').disabled = true;
+        document.getElementById('roulette-display').textContent = '¡COMPLETO!';
+        document.getElementById('draft-instructions').textContent = '¡11 completado con éxito! Presiona el botón de abajo para avanzar al torneo.';
     }
 }
 
@@ -459,14 +465,14 @@ function recalculateTeamRating() {
     }
 }
 
-// Pasar a setup de torneo
+// Setup del torneo
 function goToTournamentSetup() {
     document.getElementById('summary-formation').textContent = selectedFormation;
     document.getElementById('summary-rating').textContent = teamRating.toFixed(1);
     switchScreen('screen-tournament-setup');
 }
 
-// Generar torneo y grupos (Copa de 32 equipos)
+// Generar oponentes y fixture del torneo
 function generateTournament() {
     teamName = document.getElementById('input-team-name').value.trim() || "U. DE CHILE HISTÓRICA";
     teamName = teamName.toUpperCase();
@@ -531,7 +537,7 @@ function generateTournament() {
     setupNextMatchSimulation();
 }
 
-// Actualizar tabla de grupo
+// Actualizar tabla del grupo
 function updateGroupTable() {
     const sorted = [...groupStandings].sort((a, b) => {
         if (b.pts !== a.pts) return b.pts - a.pts;
@@ -565,7 +571,7 @@ function updateGroupTable() {
     });
 }
 
-// Actualizar vista del Fixture
+// Actualizar fixture
 function updateFixtureView() {
     const container = document.getElementById('fixture-matches-container');
     container.innerHTML = '';
@@ -626,7 +632,7 @@ function updateFixtureView() {
     }
 }
 
-// Configurar partido
+// Configurar proximo partido
 function setupNextMatchSimulation() {
     let home, away;
     
@@ -657,7 +663,7 @@ function setupNextMatchSimulation() {
     btn.textContent = "JUGAR PARTIDO";
 }
 
-// Simular el partido activo
+// Simular partido
 function simulateActiveMatch() {
     const btn = document.getElementById('btn-start-sim');
     btn.disabled = true;
@@ -697,7 +703,7 @@ function simulateActiveMatch() {
         if (Math.random() < probHome) {
             scoreHome++;
             const scorer = chooseScorer(home);
-            logEl.innerHTML += `<div style="color: #60A5FA;">[${minute}'] ¡GOOOOOL DE ${home.name.replace(' (CAMPEÓN)', '')}! Anota ${scorer} con definición impecable.</div>`;
+            logEl.innerHTML += `<div style="color: #60A5FA;">[${minute}'] ¡GOOOOOL DE ${home.name.replace(' (CAMPEÓN)', '')}! Anota ${scorer}.</div>`;
             document.getElementById('sim-scoreboard').textContent = `${scoreHome} - ${scoreAway}`;
             logEl.scrollTop = logEl.scrollHeight;
         }
@@ -715,10 +721,10 @@ function simulateActiveMatch() {
             const chosenTeam = teams[Math.floor(Math.random() * 2)];
             const player = chooseScorer(chosenTeam);
             const incidents = [
-                `¡Zambombazo de ${player} al travesaño!`,
-                `Tarjeta amarilla para ${player} por juego fuerte.`,
-                `El arquero contiene un cabezazo letal de ${player}.`,
-                `¡Tiro libre peligroso ejecutado por ${player} desviado por el portero!`
+                `¡Remate cruzado de ${player} que roza el vertical!`,
+                `Tarjeta amarilla para ${player}.`,
+                `El arquero rival desvía al córner un tiro libre de ${player}.`,
+                `¡Increíble fallo de ${player} en boca de arco!`
             ];
             const msg = incidents[Math.floor(Math.random() * incidents.length)];
             logEl.innerHTML += `<div style="color: #94A3B8;">[${minute}'] ${msg}</div>`;
@@ -727,7 +733,7 @@ function simulateActiveMatch() {
         
         if (minute >= 90) {
             clearInterval(interval);
-            logEl.innerHTML += `<div style="font-weight: 800; margin-top:0.5rem;">[90'] ¡FINAL DEL PARTIDO! Marcador final: ${scoreHome} - ${scoreAway}.</div>`;
+            logEl.innerHTML += `<div style="font-weight: 800; margin-top:0.5rem;">[90'] ¡FINAL DEL PARTIDO! Resultado: ${scoreHome} - ${scoreAway}.</div>`;
             logEl.scrollTop = logEl.scrollHeight;
             
             processMatchResult(scoreHome, scoreAway, home, away);
@@ -755,7 +761,7 @@ function chooseScorer(team) {
     return weighted[Math.floor(Math.random() * weighted.length)];
 }
 
-// Procesar partido
+// Procesar resultado
 function processMatchResult(scoreHome, scoreAway, home, away) {
     if (tournamentStage === "groups") {
         home.pj++;
@@ -811,7 +817,7 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
                     setupNextMatchSimulation();
                 };
             } else {
-                endGame(false, `Quedaste en el puesto #${userRank} del grupo. ¡Casi clasificas!`);
+                endGame(false, `Quedaste en el puesto #${userRank} del grupo. ¡Eliminado!`);
             }
         }
     } else {
@@ -828,7 +834,7 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
 // Simular penales en Playoffs
 function simulatePenalties(home, away) {
     const logEl = document.getElementById('sim-events-log');
-    logEl.innerHTML += `<div style="font-weight: 800; color: #EAB308; margin-top: 0.5rem;">[PENALES] ¡Empate! Nos vamos a penales.</div>`;
+    logEl.innerHTML += `<div style="font-weight: 800; color: #EAB308; margin-top: 0.5rem;">[PENALES] ¡Empate! Definición desde los doce pasos.</div>`;
     
     let pensHome = 0;
     let pensAway = 0;
