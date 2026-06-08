@@ -1,6 +1,7 @@
 // Juego de Alineaciones Históricas de la Universidad de Chile
 
 let selectedMode = 'normal';
+let selectedDifficulty = 'normal'; // 'easy', 'normal', 'hard'
 let selectedFormation = '4-4-2';
 let activeSlotIndex = null;
 let dreamTeam = Array(11).fill(null);
@@ -8,7 +9,7 @@ let draftProgress = 0;
 let teamRating = 0.0;
 
 // Variables de Ruleta y Draft
-let resortCount = 3;
+let resortCount = 2;
 let currentSorteadoPlantel = null;
 let selectedPlayerToPlace = null; // Jugador seleccionado de la lista esperando ser ubicado
 let rouletteInterval = null;
@@ -83,8 +84,15 @@ const FORMACIONES = {
 // Cambiar modo de juego (Normal / Solo Campeones)
 function selectMode(mode) {
     selectedMode = mode;
-    document.querySelectorAll('.mode-card').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.mode-card[id^="mode-"]').forEach(el => el.classList.remove('active'));
     document.getElementById(`mode-${mode}`).classList.add('active');
+}
+
+// Cambiar dificultad del juego
+function selectDifficulty(diff) {
+    selectedDifficulty = diff;
+    document.querySelectorAll('.mode-card[id^="diff-"]').forEach(el => el.classList.remove('active'));
+    document.getElementById(`diff-${diff}`).classList.add('active');
 }
 
 // Elegir formación
@@ -99,7 +107,16 @@ function startDraft() {
     dreamTeam = Array(11).fill(null);
     draftProgress = 0;
     teamRating = 0.0;
-    resortCount = 3;
+    
+    // Asignar re-sorteos según dificultad
+    if (selectedDifficulty === 'easy') {
+        resortCount = 4;
+    } else if (selectedDifficulty === 'normal') {
+        resortCount = 2;
+    } else {
+        resortCount = 0;
+    }
+    
     selectedPlayerToPlace = null;
     isSpinning = false;
     currentSorteadoPlantel = null;
@@ -158,7 +175,6 @@ function renderFieldSlots() {
             const slotEl = document.createElement('div');
             slotEl.id = `circle-slot-${slot.id}`;
             slotEl.className = 'field-circle-slot';
-            // No tiene click directo a menos que se este ubicando un jugador de esa posicion
             
             // Si tiene jugador asignado
             const player = dreamTeam[slot.id];
@@ -330,18 +346,20 @@ function renderFullPlantelList(plantel) {
     sortedPlayers.forEach((player, idx) => {
         const category = player.pos; // 'ARQ', 'DEF', 'MED', 'DEL'
         
-        // Calcular si la posicion en el 11 ya esta completa
+        // 1. Calcular si la posicion en el 11 ya esta completa
         const totalSlotsOfCategory = FORMACIONES[selectedFormation].filter(s => s.pos === category).length;
         const filledSlotsOfCategory = dreamTeam.filter((p, sIdx) => p !== null && FORMACIONES[selectedFormation][sIdx].pos === category).length;
         const slotsFree = totalSlotsOfCategory - filledSlotsOfCategory;
-        
         const isFull = slotsFree <= 0;
+        
+        // 2. Comprobar si el jugador ya está seleccionado (para evitar duplicados obligatoriamente)
+        const isAlreadyChosen = dreamTeam.some(p => p !== null && p.name.toLowerCase().trim() === player.name.toLowerCase().trim());
         
         const item = document.createElement('div');
         item.className = 'player-select-item';
         
-        if (isFull) {
-            // Deshabilitar visualmente
+        if (isAlreadyChosen) {
+            // Jugador duplicado: Bloquear
             item.style.opacity = '0.35';
             item.style.pointerEvents = 'none';
             item.innerHTML = `
@@ -350,7 +368,19 @@ function renderFullPlantelList(plantel) {
                     <span class="item-name" style="text-decoration: line-through;">${player.name}</span>
                     <span class="item-pos">${player.pos}</span>
                 </div>
-                <span class="item-rating" style="font-size:0.7rem; font-family:'Montserrat',sans-serif; font-weight:800; color:var(--accent-red);">LLENO</span>
+                <span class="item-rating" style="font-size:0.65rem; font-family:'Montserrat',sans-serif; font-weight:800; color:var(--text-secondary);">ELEGIDO</span>
+            `;
+        } else if (isFull) {
+            // Posición llena: Bloquear
+            item.style.opacity = '0.35';
+            item.style.pointerEvents = 'none';
+            item.innerHTML = `
+                <div class="item-left">
+                    <span class="item-number">#${idx + 1}</span>
+                    <span class="item-name" style="text-decoration: line-through;">${player.name}</span>
+                    <span class="item-pos">${player.pos}</span>
+                </div>
+                <span class="item-rating" style="font-size:0.65rem; font-family:'Montserrat',sans-serif; font-weight:800; color:var(--accent-red);">LLENO</span>
             `;
         } else {
             // Habilitar selección
@@ -394,7 +424,6 @@ function selectPlayerForPlacement(player, itemEl) {
     // Destacar en el campo de fútbol los slots vacíos correspondientes a su posición
     const category = player.pos;
     const slots = FORMACIONES[selectedFormation];
-    let highlightedCount = 0;
     
     slots.forEach(slot => {
         if (slot.pos === category && dreamTeam[slot.id] === null) {
@@ -402,7 +431,6 @@ function selectPlayerForPlacement(player, itemEl) {
             if (circle) {
                 circle.classList.add('highlight-slot');
                 circle.onclick = () => placePlayerInSlot(slot.id);
-                highlightedCount++;
             }
         }
     });
@@ -494,7 +522,12 @@ function generateTournament() {
     keys.forEach((key, idx) => {
         const p = allPlanteles[key];
         const sum = p.players.reduce((acc, pl) => acc + pl.rating, 0);
-        const avg = sum / p.players.length;
+        let avg = sum / p.players.length;
+        
+        // DIFICULTAD DIFÍCIL: Añadir +3 de rating a todos los rivales
+        if (selectedDifficulty === 'hard') {
+            avg += 3.0;
+        }
         
         tournamentTeams.push({
             id: idx + 1,
@@ -510,7 +543,7 @@ function generateTournament() {
         tournamentTeams.push({
             id: tournamentTeams.length,
             name: `U. DE CHILE CLÁSICA ${tournamentTeams.length}`,
-            rating: 77.0,
+            rating: selectedDifficulty === 'hard' ? 80.0 : 77.0,
             is_user: false,
             players: [],
             pts: 0, pj: 0, gf: 0, gc: 0

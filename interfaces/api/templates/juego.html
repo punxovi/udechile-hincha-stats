@@ -644,10 +644,37 @@
                 </div>
             </div>
 
+            <!-- Selector de Dificultad -->
+            <div style="margin-bottom: 2rem;">
+                <label style="font-family: 'Montserrat', sans-serif; font-weight: 800; text-transform: uppercase; color: var(--text-primary); font-size: 0.9rem; display: block; margin-bottom: 0.8rem;">
+                    2. SELECCIONA LA DIFICULTAD
+                </label>
+                <div class="mode-selector">
+                    <div class="mode-card" id="diff-easy" onclick="selectDifficulty('easy')">
+                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; margin-bottom: 0.3rem; text-transform: uppercase;">Fácil (Bulla de Mi Vida)</h3>
+                        <p style="font-size: 0.75rem; line-height: 1.3; font-family: 'Montserrat', sans-serif;">
+                            4 re-sorteos de plantel. Rivales con rating normal.
+                        </p>
+                    </div>
+                    <div class="mode-card active" id="diff-normal" onclick="selectDifficulty('normal')">
+                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; margin-bottom: 0.3rem; text-transform: uppercase;">Normal (Chuncho Clásico)</h3>
+                        <p style="font-size: 0.75rem; line-height: 1.3; font-family: 'Montserrat', sans-serif;">
+                            2 re-sorteos de plantel. Rivales con rating normal.
+                        </p>
+                    </div>
+                    <div class="mode-card" id="diff-hard" onclick="selectDifficulty('hard')">
+                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; margin-bottom: 0.3rem; text-transform: uppercase; color: var(--accent-red);">Difícil (Romántico Viajero)</h3>
+                        <p style="font-size: 0.75rem; line-height: 1.3; font-family: 'Montserrat', sans-serif;">
+                            0 re-sorteos. Rivales reciben boost de +3 en rating general.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Selector de Formación -->
             <div style="margin-bottom: 2.5rem;">
                 <label style="font-family: 'Montserrat', sans-serif; font-weight: 800; text-transform: uppercase; color: var(--text-primary); font-size: 0.9rem; display: block; margin-bottom: 0.8rem;">
-                    2. ELIGE LA FORMACIÓN DE TU EQUIPO
+                    3. ELIGE LA FORMACIÓN DE TU EQUIPO
                 </label>
                 <div class="formation-grid">
                     <div class="formation-btn active" onclick="selectFormation('4-4-2', this)">4-4-2</div>
