@@ -556,6 +556,108 @@ function generateTournament() {
     setupNextMatchSimulation();
 }
 
+// Actualizar tabla del grupo
+function updateGroupTable() {
+    const sorted = [...groupStandings].sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        const diffA = a.gf - a.gc;
+        const diffB = b.gf - b.gc;
+        if (diffB !== diffA) return diffB - diffA;
+        return b.gf - a.gf;
+    });
+    
+    const tbody = document.getElementById('group-table-body');
+    tbody.innerHTML = '';
+    
+    sorted.forEach((team, idx) => {
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
+        if (team.is_user) {
+            row.style.background = 'rgba(37,99,235,0.08)';
+            row.style.fontWeight = '800';
+        }
+        
+        let cleanName = team.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '').replace(' (MATADOR SALAS)', '').replace(' (RACHA INVICTO)', '');
+        row.innerHTML = `
+            <td style="padding: 0.6rem 0; font-family: 'Montserrat', sans-serif; font-weight: 800; color: var(--text-primary);">
+                ${idx + 1}. ${cleanName} <span style="font-size:0.7rem; color:var(--text-secondary);">(${team.rating.toFixed(1)})</span>
+            </td>
+            <td style="text-align: center; font-weight: 800; color: var(--text-primary);">${team.pts}</td>
+            <td style="text-align: center; color: var(--text-secondary);">${team.pj}</td>
+            <td style="text-align: center; color: var(--text-secondary);">${team.gf}</td>
+            <td style="text-align: center; color: var(--text-secondary);">${team.gc}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Actualizar fixture
+function updateFixtureView() {
+    const container = document.getElementById('fixture-matches-container');
+    container.innerHTML = '';
+    
+    if (tournamentStage === "groups") {
+        document.getElementById('fixture-stage-title').textContent = 'Fase de Grupos (Clasifican 2)';
+        
+        const matches = [
+            { stage: "Fecha 1", home: groupStandings[0], away: groupStandings[1], played: currentMatchIndex > 0 },
+            { stage: "Fecha 2", home: groupStandings[0], away: groupStandings[2], played: currentMatchIndex > 1 },
+            { stage: "Fecha 3", home: groupStandings[0], away: groupStandings[3], played: currentMatchIndex > 2 }
+        ];
+        
+        matches.forEach((m, idx) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.justifyContent = 'space-between';
+            row.style.alignItems = 'center';
+            row.style.padding = '0.6rem';
+            row.style.border = '2px solid var(--text-primary)';
+            if (idx === currentMatchIndex) {
+                row.style.background = 'rgba(37,99,235,0.04)';
+                row.style.borderColor = 'var(--accent-red)';
+            }
+            
+            let cleanHomeName = m.home.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '').replace(' (MATADOR SALAS)', '').replace(' (RACHA INVICTO)', '');
+            let cleanAwayName = m.away.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '').replace(' (MATADOR SALAS)', '').replace(' (RACHA INVICTO)', '');
+
+            row.innerHTML = `
+                <span style="font-weight: 800; font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">${m.stage}</span>
+                <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; color: var(--text-primary);">
+                    ${cleanHomeName.substring(0, 14)} vs ${cleanAwayName.substring(0, 14)}
+                </span>
+                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text-primary);">
+                    ${m.played ? "JUGADO" : (idx === currentMatchIndex ? "POR JUGAR" : "PENDIENTE")}
+                </span>
+            `;
+            container.appendChild(row);
+        });
+    } else {
+        document.getElementById('fixture-stage-title').textContent = playoffStageNames[playoffStageIndex];
+        
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.alignItems = 'center';
+        row.style.padding = '0.8rem';
+        row.style.border = '3px solid var(--text-primary)';
+        row.style.background = 'rgba(37,99,235,0.05)';
+        
+        let cleanHomeName = groupStandings[0].name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '').replace(' (MATADOR SALAS)', '').replace(' (RACHA INVICTO)', '');
+        let cleanAwayName = playoffOpponent.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '').replace(' (MATADOR SALAS)', '').replace(' (RACHA INVICTO)', '');
+
+        row.innerHTML = `
+            <span style="font-weight: 800; font-size: 0.8rem; color: var(--accent-red); text-transform: uppercase;">MANDATORIO</span>
+            <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: var(--text-primary);">
+                ${cleanHomeName.substring(0, 14)} vs ${cleanAwayName.substring(0, 14)}
+            </span>
+            <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text-primary);">
+                PLAYOFFS
+            </span>
+        `;
+        container.appendChild(row);
+    }
+}
+
 // Click del botón central de simulación (Controlador Central)
 function handleStartSimClick() {
     const btn = document.getElementById('btn-start-sim');
