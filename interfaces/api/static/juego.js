@@ -24,6 +24,7 @@ let groupStandings = []; // Los 4 equipos del grupo del usuario
 let playoffOpponent = null;
 let playoffStageIndex = 0; // 0=Octavos, 1=Cuartos, 2=Semis, 3=Final
 const playoffStageNames = ["Octavos de Final", "Cuartos de Final", "Semifinal", "Gran Final"];
+let matchHistory = []; // Registro de partidos del torneo para el Muro de Honor
 
 // Estructura de posiciones para cada formación
 const FORMACIONES = {
@@ -805,6 +806,15 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
     const btn = document.getElementById('btn-start-sim');
     btn.disabled = false;
     
+    // Registrar el partido en el historial
+    matchHistory.push({
+        phase: tournamentStage === "groups" ? `FECHA ${currentMatchIndex + 1}` : playoffStageNames[playoffStageIndex].toUpperCase(),
+        awayName: away.name,
+        homeScore: scoreHome,
+        awayScore: scoreAway,
+        penalties: null
+    });
+    
     if (tournamentStage === "groups") {
         home.pj++;
         away.pj++;
@@ -973,6 +983,11 @@ function simulatePenalties(home, away) {
     function finalizeShootout() {
         clearInterval(interval);
         
+        // Registrar resultado de penales en el historial
+        if (matchHistory.length > 0) {
+            matchHistory[matchHistory.length - 1].penalties = `${pensHome} - ${pensAway}`;
+        }
+        
         document.getElementById('pen-current-kicker-banner').style.display = 'none';
         
         btn.disabled = false;
@@ -1083,6 +1098,32 @@ function endGame(isWinner, message) {
         msg.textContent = message;
         if (btnSave) btnSave.style.display = 'none';
     }
+
+    // Renderizar la trayectoria del torneo
+    const campaignList = document.getElementById('gameover-campaign-list');
+    if (campaignList) {
+        campaignList.innerHTML = '';
+        if (matchHistory.length === 0) {
+            campaignList.innerHTML = `<div style="text-align: center; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; padding: 1rem 0;">Sin partidos registrados.</div>`;
+        } else {
+            matchHistory.forEach(match => {
+                let cleanAwayName = match.awayName.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '').replace(' (MATADOR SALAS)', '').replace(' (RACHA INVICTO)', '');
+                let penSpan = match.penalties ? `<span style="font-size: 0.65rem; color: var(--text-tertiary); font-weight: 800;"> (PEN: ${match.penalties})</span>` : '';
+                let isUserWinner = match.homeScore > match.awayScore || (match.penalties && parseInt(match.penalties.split(' - ')[0]) > parseInt(match.penalties.split(' - ')[1]));
+                let resultColor = isUserWinner ? '#15803d' : '#ef4444';
+                
+                campaignList.innerHTML += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--text-primary); padding-bottom: 0.4rem; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 800;">
+                        <span style="color: var(--text-secondary); text-transform: uppercase; min-width: 80px;">${match.phase}</span>
+                        <span style="color: var(--text-primary); text-transform: uppercase; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 200px;">vs ${cleanAwayName}</span>
+                        <span style="color: ${resultColor}; font-size: 0.95rem;">
+                            ${match.homeScore} - ${match.awayScore} ${penSpan}
+                        </span>
+                    </div>
+                `;
+            });
+        }
+    }
 }
 
 // Reiniciar juego
@@ -1104,7 +1145,8 @@ function saveToHallOfFame() {
         team_name: teamName,
         formation: selectedFormation,
         rating: teamRating,
-        players: dreamTeam
+        players: dreamTeam,
+        campaign: matchHistory
     };
     
     fetch('/api/juego/guardar', {

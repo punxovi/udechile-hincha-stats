@@ -806,6 +806,30 @@
                                     </span>
                                 {% endif %}
                             </div>
+
+                            {% if dt.campaign %}
+                                <details style="border-top: 1px dashed var(--text-primary); margin-top: 0.5rem; padding-top: 0.5rem;">
+                                    <summary style="font-family: 'Montserrat', sans-serif; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; cursor: pointer; color: var(--text-secondary); outline: none;">
+                                        Ver Trayectoria
+                                    </summary>
+                                    <div style="display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem;">
+                                        {% for match in dt.campaign %}
+                                            <div style="font-family: 'Montserrat', sans-serif; font-size: 0.65rem; display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(0,0,0,0.08); padding-bottom: 0.2rem;">
+                                                <span style="font-weight: 800; color: var(--text-secondary); min-width: 45px;">{{ match.phase }}</span>
+                                                <span style="font-weight: 800; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 120px;">
+                                                    vs {{ match.awayName | replace(' (CAMPEÓN)', '') | replace(' (BALLET AZUL)', '') | replace(' (MATADOR SALAS)', '') | replace(' (RACHA INVICTO)', '') }}
+                                                </span>
+                                                <span style="font-weight: 800; color: {% if match.homeScore > match.awayScore %}#15803d{% else %}#ef4444{% endif %};">
+                                                    {{ match.homeScore }}-{{ match.awayScore }}
+                                                    {% if match.penalties %}
+                                                        <span style="font-size: 0.55rem; color: var(--text-tertiary);"> (PEN: {{ match.penalties }})</span>
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </details>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
@@ -1071,6 +1095,16 @@
             <p id="gameover-msg" style="font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 1.1rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 2rem auto; line-height: 1.6;">
                 Tu Dream Team de leyendas ha hecho historia superando todas las fases del mundial y consagrándose campeón. ¡Tu alineación ya está lista para el Muro de Honor!
             </p>
+
+            <!-- Trayectoria del Torneo -->
+            <div id="gameover-campaign-box" style="margin: 2rem auto; max-width: 600px; text-align: left; border: 2px solid var(--text-primary); background: var(--bg-card); padding: 1.5rem;">
+                <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; margin: 0 0 1rem 0; border-bottom: 2px solid var(--text-primary); padding-bottom: 0.5rem; letter-spacing: 1px; color: var(--text-primary);">
+                    TRAYECTORIA DEL TORNEO
+                </h3>
+                <div id="gameover-campaign-list" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                    <!-- Se inyecta dinámicamente desde juego.js -->
+                </div>
+            </div>
 
             <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto;">
                 <!-- Botón de guardar solo si es campeón y está logueado -->

@@ -68,10 +68,17 @@ class SqliteDatabase:
                     formation TEXT NOT NULL,
                     rating REAL NOT NULL,
                     players TEXT NOT NULL, -- JSON string de la lista de jugadores seleccionados
-                    date TEXT NOT NULL
+                    date TEXT NOT NULL,
+                    campaign TEXT -- JSON string del historial de partidos jugados
                 )
             """)
             
+            # Intentar agregar la columna campaign por si la tabla ya existía
+            try:
+                cursor.execute("ALTER TABLE dream_teams ADD COLUMN campaign TEXT;")
+            except sqlite3.OperationalError:
+                pass
+                
             conn.commit()
 
     def clear_all_data(self):

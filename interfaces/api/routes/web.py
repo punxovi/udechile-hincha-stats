@@ -221,6 +221,7 @@ class SaveDreamTeamPayload(BaseModel):
     formation: str
     rating: float
     players: list
+    campaign: Optional[list] = None
 
 @router.get("/juego")
 async def game_page(request: Request):
@@ -233,16 +234,23 @@ async def game_page(request: Request):
         with db.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT team_name, formation, rating, players, date FROM dream_teams WHERE user_id = ? ORDER BY id DESC",
+                "SELECT team_name, formation, rating, players, date, campaign FROM dream_teams WHERE user_id = ? ORDER BY id DESC",
                 (current_user["id"],)
             )
             for row in cursor.fetchall():
+                campaign_data = []
+                if "campaign" in row.keys() and row["campaign"]:
+                    try:
+                        campaign_data = json.loads(row["campaign"])
+                    except Exception:
+                        pass
                 muro_honor.append({
                     "team_name": row["team_name"],
                     "formation": row["formation"],
                     "rating": row["rating"],
                     "players": json.loads(row["players"]),
-                    "date": row["date"]
+                    "date": row["date"],
+                    "campaign": campaign_data
                 })
 
     return templates.TemplateResponse(
@@ -267,14 +275,15 @@ async def save_dream_team(request: Request, payload: SaveDreamTeamPayload):
     with db.get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO dream_teams (user_id, team_name, formation, rating, players, date) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO dream_teams (user_id, team_name, formation, rating, players, date, campaign) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (
                 current_user["id"],
                 payload.team_name,
                 payload.formation,
                 payload.rating,
                 json.dumps(payload.players),
-                date_str
+                date_str,
+                json.dumps(payload.campaign) if payload.campaign else None
             )
         )
         conn.commit()
@@ -292,15 +301,22 @@ async def get_muro_honor(request: Request):
     with db.get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT team_name, formation, rating, players, date FROM dream_teams WHERE user_id = ? ORDER BY id DESC",
+            "SELECT team_name, formation, rating, players, date, campaign FROM dream_teams WHERE user_id = ? ORDER BY id DESC",
             (current_user["id"],)
         )
         for row in cursor.fetchall():
+            campaign_data = []
+            if "campaign" in row.keys() and row["campaign"]:
+                try:
+                    campaign_data = json.loads(row["campaign"])
+                except Exception:
+                    pass
             muro.append({
                 "team_name": row["team_name"],
                 "formation": row["formation"],
                 "rating": row["rating"],
                 "players": json.loads(row["players"]),
-                "date": row["date"]
+                "date": row["date"],
+                "campaign": campaign_data
             })
     return muro
