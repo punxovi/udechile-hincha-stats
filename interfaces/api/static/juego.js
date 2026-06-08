@@ -855,6 +855,7 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
                 
                 // Guardar mensaje en sessionStorage para mostrarlo al hacer click
                 sessionStorage.setItem('gameover_msg', `Quedaste en el puesto #${userRank} del grupo. ¡Casi clasificas!`);
+                sessionStorage.setItem('gameover_winner', 'false');
             }
         }
     } else {
@@ -864,6 +865,7 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
             btn.textContent = "VER RESULTADOS";
             btn.setAttribute('data-action', 'gameover');
             sessionStorage.setItem('gameover_msg', `Derrotado en ${playoffStageNames[playoffStageIndex]} frente a ${away.name.replace(' (CAMPEÓN)', '')}.`);
+            sessionStorage.setItem('gameover_winner', 'false');
         } else {
             simulatePenalties(home, away);
         }
@@ -980,6 +982,7 @@ function simulatePenalties(home, away) {
             btn.textContent = "VER RESULTADOS";
             btn.setAttribute('data-action', 'gameover');
             sessionStorage.setItem('gameover_msg', `Fuiste eliminado en penales (${pensHome}-${pensAway}) en ${playoffStageNames[playoffStageIndex]} frente a ${away.name.replace(' (CAMPEÓN)', '')}.`);
+            sessionStorage.setItem('gameover_winner', 'false');
         }
     }
 }
