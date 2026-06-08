@@ -340,11 +340,10 @@ function renderFullPlantelList(plantel) {
     const container = document.getElementById('draft-players-list');
     container.innerHTML = '';
     
-    // Ordenar jugadores por rating descendente para comodidad visual
     const sortedPlayers = [...plantel.players].sort((a, b) => b.rating - a.rating);
     
     sortedPlayers.forEach((player, idx) => {
-        const category = player.pos; // 'ARQ', 'DEF', 'MED', 'DEL'
+        const category = player.pos;
         
         // 1. Calcular si la posicion en el 11 ya esta completa
         const totalSlotsOfCategory = FORMACIONES[selectedFormation].filter(s => s.pos === category).length;
@@ -359,7 +358,6 @@ function renderFullPlantelList(plantel) {
         item.className = 'player-select-item';
         
         if (isAlreadyChosen) {
-            // Jugador duplicado: Bloquear
             item.style.opacity = '0.35';
             item.style.pointerEvents = 'none';
             item.innerHTML = `
@@ -371,7 +369,6 @@ function renderFullPlantelList(plantel) {
                 <span class="item-rating" style="font-size:0.65rem; font-family:'Montserrat',sans-serif; font-weight:800; color:var(--text-secondary);">ELEGIDO</span>
             `;
         } else if (isFull) {
-            // Posición llena: Bloquear
             item.style.opacity = '0.35';
             item.style.pointerEvents = 'none';
             item.innerHTML = `
@@ -383,7 +380,6 @@ function renderFullPlantelList(plantel) {
                 <span class="item-rating" style="font-size:0.65rem; font-family:'Montserrat',sans-serif; font-weight:800; color:var(--accent-red);">LLENO</span>
             `;
         } else {
-            // Habilitar selección
             item.onclick = () => selectPlayerForPlacement(player, item);
             item.innerHTML = `
                 <div class="item-left">
@@ -411,17 +407,12 @@ function resortPlantel() {
 function selectPlayerForPlacement(player, itemEl) {
     if (isSpinning) return;
     
-    // Desmarcar selecciones previas de la lista
     document.querySelectorAll('.player-select-item').forEach(el => el.classList.remove('selected'));
-    
-    // Marcar el actual
     itemEl.classList.add('selected');
     selectedPlayerToPlace = player;
     
-    // Redibujar campo base para limpiar destaques previos
     renderFieldSlots();
     
-    // Destacar en el campo de fútbol los slots vacíos correspondientes a su posición
     const category = player.pos;
     const slots = FORMACIONES[selectedFormation];
     
@@ -442,7 +433,6 @@ function selectPlayerForPlacement(player, itemEl) {
 function placePlayerInSlot(slotId) {
     if (!selectedPlayerToPlace) return;
     
-    // Guardar en dreamTeam
     dreamTeam[slotId] = {
         name: selectedPlayerToPlace.name,
         pos: selectedPlayerToPlace.pos,
@@ -453,14 +443,10 @@ function placePlayerInSlot(slotId) {
     draftProgress++;
     selectedPlayerToPlace = null;
     
-    // Recalcular rating
     recalculateTeamRating();
-    
-    // Redibujar todo
     renderFieldSlots();
     renderBoxScore();
     
-    // Limpiar panel de la izquierda y restablecer ruleta
     document.getElementById('roulette-display').textContent = 'PRESIONA GIRAR';
     document.getElementById('btn-spin-roulette').disabled = false;
     document.getElementById('btn-resort-plantel').disabled = true;
@@ -473,7 +459,6 @@ function placePlayerInSlot(slotId) {
     
     document.getElementById('draft-instructions').textContent = 'Gira la ruleta de planteles para la siguiente ronda';
     
-    // Comprobar si completamos el 11
     if (draftProgress === 11) {
         document.getElementById('btn-advance-tournament').style.display = 'block';
         document.getElementById('btn-spin-roulette').disabled = true;
@@ -521,13 +506,11 @@ function generateTournament() {
     
     keys.forEach((key) => {
         const p = allPlanteles[key];
-        // Solo planteles campeones del club como rivales en el torneo
         if (p.is_champion !== true) return;
         
         const sum = p.players.reduce((acc, pl) => acc + pl.rating, 0);
         let avg = sum / p.players.length;
         
-        // DIFICULTAD DIFÍCIL: Añadir +3 de rating a todos los rivales
         if (selectedDifficulty === 'hard') {
             avg += 3.0;
         }
@@ -573,98 +556,17 @@ function generateTournament() {
     setupNextMatchSimulation();
 }
 
-// Actualizar tabla del grupo
-function updateGroupTable() {
-    const sorted = [...groupStandings].sort((a, b) => {
-        if (b.pts !== a.pts) return b.pts - a.pts;
-        const diffA = a.gf - a.gc;
-        const diffB = b.gf - b.gc;
-        if (diffB !== diffA) return diffB - diffA;
-        return b.gf - a.gf;
-    });
+// Click del botón central de simulación (Controlador Central)
+function handleStartSimClick() {
+    const btn = document.getElementById('btn-start-sim');
+    const action = btn.getAttribute('data-action');
     
-    const tbody = document.getElementById('group-table-body');
-    tbody.innerHTML = '';
-    
-    sorted.forEach((team, idx) => {
-        const row = document.createElement('tr');
-        row.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
-        if (team.is_user) {
-            row.style.background = 'rgba(37,99,235,0.08)';
-            row.style.fontWeight = '800';
-        }
-        
-        row.innerHTML = `
-            <td style="padding: 0.6rem 0; font-family: 'Montserrat', sans-serif; font-weight: 800; color: var(--text-primary);">
-                ${idx + 1}. ${team.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '')} <span style="font-size:0.7rem; color:var(--text-secondary);">(${team.rating.toFixed(1)})</span>
-            </td>
-            <td style="text-align: center; font-weight: 800; color: var(--text-primary);">${team.pts}</td>
-            <td style="text-align: center; color: var(--text-secondary);">${team.pj}</td>
-            <td style="text-align: center; color: var(--text-secondary);">${team.gf}</td>
-            <td style="text-align: center; color: var(--text-secondary);">${team.gc}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-// Actualizar fixture
-function updateFixtureView() {
-    const container = document.getElementById('fixture-matches-container');
-    container.innerHTML = '';
-    
-    if (tournamentStage === "groups") {
-        document.getElementById('fixture-stage-title').textContent = 'Fase de Grupos (Clasifican 2)';
-        
-        const matches = [
-            { stage: "Fecha 1", home: groupStandings[0], away: groupStandings[1], played: currentMatchIndex > 0 },
-            { stage: "Fecha 2", home: groupStandings[0], away: groupStandings[2], played: currentMatchIndex > 1 },
-            { stage: "Fecha 3", home: groupStandings[0], away: groupStandings[3], played: currentMatchIndex > 2 }
-        ];
-        
-        matches.forEach((m, idx) => {
-            const row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.justifyContent = 'space-between';
-            row.style.alignItems = 'center';
-            row.style.padding = '0.6rem';
-            row.style.border = '2px solid var(--text-primary)';
-            if (idx === currentMatchIndex) {
-                row.style.background = 'rgba(37,99,235,0.04)';
-                row.style.borderColor = 'var(--accent-red)';
-            }
-            
-            row.innerHTML = `
-                <span style="font-weight: 800; font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">${m.stage}</span>
-                <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; color: var(--text-primary);">
-                    ${m.home.name.substring(0, 14)} vs ${m.away.name.substring(0, 14)}
-                </span>
-                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text-primary);">
-                    ${m.played ? "JUGADO" : (idx === currentMatchIndex ? "POR JUGAR" : "PENDIENTE")}
-                </span>
-            `;
-            container.appendChild(row);
-        });
-    } else {
-        document.getElementById('fixture-stage-title').textContent = playoffStageNames[playoffStageIndex];
-        
-        const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.justifyContent = 'space-between';
-        row.style.alignItems = 'center';
-        row.style.padding = '0.8rem';
-        row.style.border = '3px solid var(--text-primary)';
-        row.style.background = 'rgba(37,99,235,0.05)';
-        
-        row.innerHTML = `
-            <span style="font-weight: 800; font-size: 0.8rem; color: var(--accent-red); text-transform: uppercase;">MANDATORIO</span>
-            <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; color: var(--text-primary);">
-                ${groupStandings[0].name.substring(0, 14)} vs ${playoffOpponent.name.substring(0, 14)}
-            </span>
-            <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text-primary);">
-                PLAYOFFS
-            </span>
-        `;
-        container.appendChild(row);
+    if (action === 'simulate') {
+        simulateActiveMatch();
+    } else if (action === 'setup') {
+        setupNextMatchSimulation();
+    } else if (action === 'gameover') {
+        restartGame();
     }
 }
 
@@ -673,23 +575,23 @@ function setupNextMatchSimulation() {
     let home, away;
     
     if (tournamentStage === "groups") {
-        document.getElementById('match-sim-phase').textContent = `Fase de Grupos · Fecha ${currentMatchIndex + 1}`;
+        document.getElementById('match-sim-phase').textContent = `FECHA ${currentMatchIndex + 1}`;
         home = groupStandings[0];
         if (currentMatchIndex === 0) away = groupStandings[1];
         else if (currentMatchIndex === 1) away = groupStandings[2];
         else away = groupStandings[3];
     } else {
-        document.getElementById('match-sim-phase').textContent = playoffStageNames[playoffStageIndex];
+        document.getElementById('match-sim-phase').textContent = playoffStageNames[playoffStageIndex].toUpperCase();
         home = groupStandings[0];
         away = playoffOpponent;
     }
     
-    document.getElementById('sim-home-name').textContent = home.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '');
-    document.getElementById('sim-home-rating').textContent = `Media: ${home.rating.toFixed(1)}`;
-    document.getElementById('sim-away-name').textContent = away.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '');
-    document.getElementById('sim-away-rating').textContent = `Media: ${away.rating.toFixed(1)}`;
+    // Limpiar nombre del rival
+    let cleanAwayName = away.name.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '').replace(' (MATADOR SALAS)', '').replace(' (RACHA INVICTO)', '');
+    document.getElementById('sim-away-name').textContent = cleanAwayName;
     document.getElementById('sim-scoreboard').textContent = "0 - 0";
     
+    // Ocultar bitácora y temporizador hasta que empiece la simulación
     document.getElementById('sim-timer').style.display = 'none';
     document.getElementById('sim-events-log').style.display = 'none';
     document.getElementById('sim-events-log').innerHTML = '';
@@ -697,6 +599,7 @@ function setupNextMatchSimulation() {
     const btn = document.getElementById('btn-start-sim');
     btn.disabled = false;
     btn.textContent = "JUGAR PARTIDO";
+    btn.setAttribute('data-action', 'simulate');
 }
 
 // Simular partido
@@ -707,8 +610,8 @@ function simulateActiveMatch() {
     const logEl = document.getElementById('sim-events-log');
     const timerEl = document.getElementById('sim-timer');
     
-    logEl.style.display = 'block';
-    timerEl.style.display = 'block';
+    logEl.style.display = 'flex';
+    timerEl.style.display = 'inline-block';
     logEl.innerHTML = '';
     
     let home, away;
@@ -726,20 +629,27 @@ function simulateActiveMatch() {
     let scoreAway = 0;
     let minute = 0;
     
-    logEl.innerHTML += `<div>[00'] ¡PITAZO INICIAL! Arranca el partido en el Estadio Nacional.</div>`;
-    
     const interval = setInterval(() => {
-        minute += 5;
+        minute += 3;
+        if (minute > 90) minute = 90;
         timerEl.textContent = `${minute}'`;
         
         const diff = home.rating - away.rating;
-        const probHome = Math.max(0.01, Math.min(0.25, 0.07 + (diff * 0.012)));
-        const probAway = Math.max(0.01, Math.min(0.25, 0.07 - (diff * 0.012)));
+        const probHome = Math.max(0.01, Math.min(0.25, 0.075 + (diff * 0.01)));
+        const probAway = Math.max(0.01, Math.min(0.25, 0.075 - (diff * 0.01)));
         
         if (Math.random() < probHome) {
             scoreHome++;
             const scorer = chooseScorer(home);
-            logEl.innerHTML += `<div style="color: #60A5FA;">[${minute}'] ¡GOOOOOL DE ${home.name.replace(' (CAMPEÓN)', '')}! Anota ${scorer}.</div>`;
+            const lastName = scorer.split(' ').pop().toUpperCase();
+            
+            logEl.innerHTML += `
+                <div class="event-row" style="animation: fadeInUp 0.3s ease;">
+                    <span class="event-minute">${minute}'</span>
+                    <span class="event-icon">⚽</span>
+                    <span class="event-text" style="color: #15803d;">${lastName}</span>
+                </div>
+            `;
             document.getElementById('sim-scoreboard').textContent = `${scoreHome} - ${scoreAway}`;
             logEl.scrollTop = logEl.scrollHeight;
         }
@@ -747,34 +657,24 @@ function simulateActiveMatch() {
         if (Math.random() < probAway) {
             scoreAway++;
             const scorer = chooseScorer(away);
-            logEl.innerHTML += `<div style="color: #F87171;">[${minute}'] ¡Gol del rival ${away.name.replace(' (CAMPEÓN)', '')}! Marca ${scorer}.</div>`;
+            const lastName = scorer.split(' ').pop().toUpperCase();
+            
+            logEl.innerHTML += `
+                <div class="event-row" style="animation: fadeInUp 0.3s ease;">
+                    <span class="event-minute">${minute}'</span>
+                    <span class="event-icon">⚽</span>
+                    <span class="event-text" style="color: #ef4444;">${lastName}</span>
+                </div>
+            `;
             document.getElementById('sim-scoreboard').textContent = `${scoreHome} - ${scoreAway}`;
-            logEl.scrollTop = logEl.scrollHeight;
-        }
-        
-        if (Math.random() < 0.08) {
-            const teams = [home, away];
-            const chosenTeam = teams[Math.floor(Math.random() * 2)];
-            const player = chooseScorer(chosenTeam);
-            const incidents = [
-                `¡Remate cruzado de ${player} que roza el vertical!`,
-                `Tarjeta amarilla para ${player}.`,
-                `El arquero rival desvía al córner un tiro libre de ${player}.`,
-                `¡Increíble fallo de ${player} en boca de arco!`
-            ];
-            const msg = incidents[Math.floor(Math.random() * incidents.length)];
-            logEl.innerHTML += `<div style="color: #94A3B8;">[${minute}'] ${msg}</div>`;
             logEl.scrollTop = logEl.scrollHeight;
         }
         
         if (minute >= 90) {
             clearInterval(interval);
-            logEl.innerHTML += `<div style="font-weight: 800; margin-top:0.5rem;">[90'] ¡FINAL DEL PARTIDO! Resultado: ${scoreHome} - ${scoreAway}.</div>`;
-            logEl.scrollTop = logEl.scrollHeight;
-            
             processMatchResult(scoreHome, scoreAway, home, away);
         }
-    }, 400);
+    }, 150);
 }
 
 // Goleador al azar
@@ -799,6 +699,9 @@ function chooseScorer(team) {
 
 // Procesar resultado
 function processMatchResult(scoreHome, scoreAway, home, away) {
+    const btn = document.getElementById('btn-start-sim');
+    btn.disabled = false;
+    
     if (tournamentStage === "groups") {
         home.pj++;
         away.pj++;
@@ -822,14 +725,9 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
         updateGroupTable();
         updateFixtureView();
         
-        const btn = document.getElementById('btn-start-sim');
-        
         if (currentMatchIndex < 3) {
             btn.textContent = "SIGUIENTE FECHA";
-            btn.disabled = false;
-            btn.onclick = () => {
-                setupNextMatchSimulation();
-            };
+            btn.setAttribute('data-action', 'setup');
         } else {
             const sorted = [...groupStandings].sort((a, b) => {
                 if (b.pts !== a.pts) return b.pts - a.pts;
@@ -847,20 +745,22 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
                 playoffOpponent = selectPlayoffOpponent();
                 
                 btn.textContent = "AVANZAR A OCTAVOS DE FINAL";
-                btn.disabled = false;
-                btn.onclick = () => {
-                    updateFixtureView();
-                    setupNextMatchSimulation();
-                };
+                btn.setAttribute('data-action', 'setup');
             } else {
-                endGame(false, `Quedaste en el puesto #${userRank} del grupo. ¡Eliminado!`);
+                btn.textContent = "VER RESULTADOS";
+                btn.setAttribute('data-action', 'gameover');
+                
+                // Guardar mensaje en sessionStorage para mostrarlo al hacer click
+                sessionStorage.setItem('gameover_msg', `Quedaste en el puesto #${userRank} del grupo. ¡Casi clasificas!`);
             }
         }
     } else {
         if (scoreHome > scoreAway) {
             advancePlayoffs();
         } else if (scoreHome < scoreAway) {
-            endGame(false, `Derrotado en ${playoffStageNames[playoffStageIndex]} frente a ${away.name.replace(' (CAMPEÓN)', '')}.`);
+            btn.textContent = "VER RESULTADOS";
+            btn.setAttribute('data-action', 'gameover');
+            sessionStorage.setItem('gameover_msg', `Derrotado en ${playoffStageNames[playoffStageIndex]} frente a ${away.name.replace(' (CAMPEÓN)', '')}.`);
         } else {
             simulatePenalties(home, away);
         }
@@ -870,7 +770,14 @@ function processMatchResult(scoreHome, scoreAway, home, away) {
 // Simular penales en Playoffs
 function simulatePenalties(home, away) {
     const logEl = document.getElementById('sim-events-log');
-    logEl.innerHTML += `<div style="font-weight: 800; color: #EAB308; margin-top: 0.5rem;">[PENALES] ¡Empate! Definición desde los doce pasos.</div>`;
+    
+    logEl.innerHTML += `
+        <div class="event-row" style="animation: fadeInUp 0.3s ease;">
+            <span class="event-minute">PEN</span>
+            <span class="event-icon">⚽</span>
+            <span class="event-text" style="color: #EAB308;">TANDA DE PENALES</span>
+        </div>
+    `;
     
     let pensHome = 0;
     let pensAway = 0;
@@ -896,36 +803,44 @@ function simulatePenalties(home, away) {
         else pensAway++;
     }
     
-    logEl.innerHTML += `<div style="font-weight: 800; color: #EAB308;">[PENALES] Tanda Final: ${pensHome} - ${pensAway}</div>`;
+    logEl.innerHTML += `
+        <div class="event-row">
+            <span class="event-minute">RES</span>
+            <span class="event-icon">🏆</span>
+            <span class="event-text" style="color: #EAB308;">PENS: ${pensHome} - ${pensAway}</span>
+        </div>
+    `;
     logEl.scrollTop = logEl.scrollHeight;
     
     const btn = document.getElementById('btn-start-sim');
     btn.disabled = false;
     
     if (pensHome > pensAway) {
-        logEl.innerHTML += `<div style="color: #60A5FA; font-weight:800;">¡U. de Chile clasifica en penales!</div>`;
         btn.textContent = "AVANZAR DE RONDA";
-        btn.onclick = () => {
-            advancePlayoffs();
-        };
+        btn.setAttribute('data-action', 'setup');
+        
+        // Simular que avanzó en playoffs
+        playoffStageIndex++;
     } else {
-        logEl.innerHTML += `<div style="color: #F87171; font-weight:800;">¡Eliminados en penales!</div>`;
         btn.textContent = "VER RESULTADOS";
-        btn.onclick = () => {
-            endGame(false, `Fuiste eliminado en penales en ${playoffStageNames[playoffStageIndex]} frente a ${away.name.replace(' (CAMPEÓN)', '')}.`);
-        };
+        btn.setAttribute('data-action', 'gameover');
+        sessionStorage.setItem('gameover_msg', `Fuiste eliminado en penales (${pensHome}-${pensAway}) en ${playoffStageNames[playoffStageIndex]} frente a ${away.name.replace(' (CAMPEÓN)', '')}.`);
     }
 }
 
 // Avanzar playoffs
 function advancePlayoffs() {
-    playoffStageIndex++;
     if (playoffStageIndex < 4) {
         playoffOpponent = selectPlayoffOpponent();
-        updateFixtureView();
-        setupNextMatchSimulation();
+        const btn = document.getElementById('btn-start-sim');
+        btn.textContent = "SIGUIENTE RONDA";
+        btn.setAttribute('data-action', 'setup');
     } else {
-        endGame(true, `¡Increíble hazaña! Tu Dream Team se coronó Campeón del Torneo Mundial de Leyendas.`);
+        const btn = document.getElementById('btn-start-sim');
+        btn.textContent = "VER RESULTADOS";
+        btn.setAttribute('data-action', 'gameover');
+        sessionStorage.setItem('gameover_msg', `¡Increíble hazaña! Tu Dream Team se coronó Campeón del Torneo Mundial de Leyendas.`);
+        sessionStorage.setItem('gameover_winner', 'true');
     }
 }
 
@@ -1009,6 +924,17 @@ function endGame(isWinner, message) {
     }
 }
 
+// Al presionar VER RESULTADOS
+function restartGame() {
+    const isWinner = sessionStorage.getItem('gameover_winner') === 'true';
+    const msg = sessionStorage.getItem('gameover_msg') || "Fin del juego.";
+    
+    sessionStorage.removeItem('gameover_winner');
+    sessionStorage.removeItem('gameover_msg');
+    
+    endGame(isWinner, msg);
+}
+
 // Guardar
 function saveToHallOfFame() {
     const btn = document.getElementById('btn-save-muro');
@@ -1045,9 +971,4 @@ function saveToHallOfFame() {
         btn.disabled = false;
         btn.textContent = "INMORTALIZAR EN MURO DE HONOR";
     });
-}
-
-// Reiniciar
-function restartGame() {
-    switchScreen('screen-setup');
 }

@@ -611,6 +611,118 @@
         margin-top: 1rem;
         line-height: 1.4;
     }
+
+    /* Estilos del Nuevo Marcador Deportivo Premium */
+    .match-header-card {
+        background: #FFF;
+        border: 3px solid var(--text-primary);
+        box-shadow: 4px 4px 0px var(--text-primary);
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .match-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .match-stage-badge {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .match-vs-label {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        font-size: 0.65rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        margin: 0 0.2rem;
+    }
+
+    .match-opponent-name {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.6rem;
+        color: var(--text-primary);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .match-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .match-score-display {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2.5rem;
+        color: #15803d; /* Verde oscuro */
+        line-height: 1;
+    }
+
+    .match-minute-badge {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 0.65rem;
+        color: #ef4444;
+        border: 1.5px solid rgba(239, 68, 68, 0.4);
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    /* Bitácora de Eventos Premium (Estilo Captura) */
+    .events-panel-card {
+        background: #FFF;
+        border: 3px solid var(--text-primary);
+        box-shadow: 4px 4px 0px var(--text-primary);
+        border-left: 6px solid #16a34a; /* Acento verde grueso en el lateral izquierdo */
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        min-height: 120px;
+        max-height: 250px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .event-row {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+    }
+
+    .event-minute {
+        font-weight: 800;
+        color: var(--text-secondary);
+        width: 32px;
+        text-align: right;
+    }
+
+    .event-icon {
+        font-size: 0.9rem;
+    }
+
+    .event-text {
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 </style>
 
 <div class="game-container">
@@ -906,49 +1018,36 @@
 
                 <!-- Columna Derecha: Simulación en Vivo o Acciones -->
                 <div class="draft-panel">
-                    <!-- Caja de Partido Activo -->
-                    <div class="brutal-card" style="border-width: 3px; box-shadow: 4px 4px 0px var(--text-primary); padding: 1.5rem; text-align: center;" id="panel-match-simulation">
-                        <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--accent-red); text-transform: uppercase; display: block; margin-bottom: 0.5rem;" id="match-sim-phase">
-                            Próximo Partido
-                        </span>
-                        
-                        <div style="display: flex; justify-content: space-around; align-items: center; margin: 1.5rem 0;">
-                            <div style="flex: 1; overflow-wrap: break-word;">
-                                <h4 style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; margin: 0 0 0.3rem 0; color: var(--text-primary);" id="sim-home-name">
-                                    Tu Equipo
-                                </h4>
-                                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text-secondary);" id="sim-home-rating">
-                                    Media: --
-                                </span>
-                            </div>
+                    <!-- Marcador Premium Estilo Captura -->
+                    <div class="match-header-card" id="premium-match-header">
+                        <div class="match-header-left">
+                            <span class="match-stage-badge" id="match-sim-phase">GRUPOS</span>
+                            <span class="match-vs-label">vs</span>
+                            <span class="match-opponent-name" id="sim-away-name">RIVAL</span>
+                        </div>
+                        <div class="match-header-right">
+                            <span class="match-score-display" id="sim-scoreboard">0 - 0</span>
+                            <span class="match-minute-badge" id="sim-timer" style="display: none;">0'</span>
+                        </div>
+                    </div>
 
-                            <div style="font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--text-primary); padding: 0 1rem;" id="sim-scoreboard">
-                                0 - 0
-                            </div>
+                    <!-- Bitácora de Eventos Premium (con acento verde lateral) -->
+                    <div class="events-panel-card" id="sim-events-log" style="display: none;">
+                        <!-- Los eventos de goles se inyectan dinámicamente -->
+                    </div>
 
-                            <div style="flex: 1; overflow-wrap: break-word;">
-                                <h4 style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; margin: 0 0 0.3rem 0; color: var(--text-primary);" id="sim-away-name">
-                                    Rival
-                                </h4>
-                                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text-secondary);" id="sim-away-rating">
-                                    Media: --
-                                </span>
-                            </div>
+                    <!-- Controles de Simulación -->
+                    <div class="brutal-card" style="border-width: 3px; box-shadow: 4px 4px 0px var(--text-primary); padding: 1.2rem; text-align: center;">
+                        <!-- Ocultamos los nombres y ratings viejos que ya no van ahí, pero los declaramos ocultos para no romper referencias de id en el script js -->
+                        <div style="display: none;">
+                            <span id="sim-home-name">Tu Equipo</span>
+                            <span id="sim-home-rating">Media: 0</span>
+                            <span id="sim-away-rating">Media: 0</span>
                         </div>
 
-                        <div id="sim-timer" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--text-tertiary); margin-bottom: 1rem; display: none;">
-                            0'
-                        </div>
-
-                        <!-- Bitácora de Eventos de Simulación -->
-                        <div id="sim-events-log" class="match-event-log" style="display: none;"></div>
-
-                        <!-- Controles de Simulación -->
-                        <div style="margin-top: 1.5rem;">
-                            <button id="btn-start-sim" class="btn-primary" style="width: 100%; justify-content: center; padding: 1rem;" onclick="simulateActiveMatch()">
-                                JUGAR PARTIDO
-                            </button>
-                        </div>
+                        <button id="btn-start-sim" class="btn-primary" style="width: 100%; justify-content: center; padding: 1rem; font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px;" data-action="simulate" onclick="handleStartSimClick()">
+                            JUGAR PARTIDO
+                        </button>
                     </div>
                 </div>
             </div>
