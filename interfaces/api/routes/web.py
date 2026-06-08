@@ -1,4 +1,6 @@
 import os
+import json
+import datetime
 from typing import Optional
 from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
@@ -6,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 from infrastructure.persistence.sqlite_store import SqliteDatabase, SqliteMatchRepository, SqliteAttendanceRepository, SqliteLeagueTableRepository
 from application.use_cases.match_use_cases import GetHistoricalMatchesUseCase, MarkAttendanceUseCase, UnmarkAttendanceUseCase
 from application.use_cases.dashboard_use_case import GenerateFanDashboardUseCase
+from infrastructure.game.game_data import PLANTELES_HISTORICOS
 
 from fastapi.responses import RedirectResponse, JSONResponse
 from pydantic import BaseModel
@@ -212,3 +215,92 @@ async def unmark_attendance(
     use_case = UnmarkAttendanceUseCase(attendance_repo)
     use_case.execute(current_user["id"], match_id)
     return {"status": "ok", "match_id": match_id}
+
+class SaveDreamTeamPayload(BaseModel):
+    team_name: str
+    formation: str
+    rating: float
+    players: list
+
+@router.get("/juego")
+async def game_page(request: Request):
+    """Renderiza la pantalla principal del juego de alineaciones."""
+    current_user = get_current_user(request)
+    
+    # Obtener el muro de honor existente de este usuario si esta logueado
+    muro_honor = []
+    if current_user:
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT team_name, formation, rating, players, date FROM dream_teams WHERE user_id = ? ORDER BY id DESC",
+                (current_user["id"],)
+            )
+            for row in cursor.fetchall():
+                muro_honor.append({
+                    "team_name": row["team_name"],
+                    "formation": row["formation"],
+                    "rating": row["rating"],
+                    "players": json.loads(row["players"]),
+                    "date": row["date"]
+                })
+
+    return templates.TemplateResponse(
+        request=request,
+        name="juego.html",
+        context={
+            "current_user": current_user,
+            "planteles_json": json.dumps(PLANTELES_HISTORICOS),
+            "muro_honor": muro_honor
+        }
+    )
+
+@router.post("/api/juego/guardar")
+async def save_dream_team(request: Request, payload: SaveDreamTeamPayload):
+    """Guarda un Dream Team en el Muro de Honor en SQLite."""
+    current_user = get_current_user(request)
+    if not current_user:
+        return JSONResponse(status_code=401, content={"detail": "Debes iniciar sesión para guardar tu equipo"})
+        
+    date_str = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
+    
+    with db.get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO dream_teams (user_id, team_name, formation, rating, players, date) VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                current_user["id"],
+                payload.team_name,
+                payload.formation,
+                payload.rating,
+                json.dumps(payload.players),
+                date_str
+            )
+        )
+        conn.commit()
+        
+    return {"status": "ok", "message": "¡Tu Dream Team ha sido inmortalizado en el Muro de Honor!"}
+
+@router.get("/api/juego/muro")
+async def get_muro_honor(request: Request):
+    """Obtiene los registros del muro de honor en formato JSON."""
+    current_user = get_current_user(request)
+    if not current_user:
+        return []
+        
+    muro = []
+    with db.get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT team_name, formation, rating, players, date FROM dream_teams WHERE user_id = ? ORDER BY id DESC",
+            (current_user["id"],)
+        )
+        for row in cursor.fetchall():
+            muro.append({
+                "team_name": row["team_name"],
+                "formation": row["formation"],
+                "rating": row["rating"],
+                "players": json.loads(row["players"]),
+                "date": row["date"]
+            })
+    return muro

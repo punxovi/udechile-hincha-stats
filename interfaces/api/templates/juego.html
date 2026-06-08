@@ -1,0 +1,681 @@
+{% extends "base.html" %}
+
+{% block title %}Dream Team Histórico - U de Chile Stats{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --field-green: #1B4332;
+        --field-line: rgba(255, 255, 255, 0.4);
+        --card-gold: #D4AF37;
+    }
+
+    /* Contenedor del Juego */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    /* Pantallas */
+    .game-screen {
+        display: none;
+    }
+    .game-screen.active {
+        display: block;
+    }
+
+    /* Caja Brutalista General */
+    .brutal-card {
+        background: var(--card-bg);
+        border: 4px solid var(--text-primary);
+        box-shadow: 6px 6px 0px var(--text-primary);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .brutal-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 3rem;
+        line-height: 1;
+        letter-spacing: 1px;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        border-bottom: 3px solid var(--text-primary);
+        padding-bottom: 0.5rem;
+    }
+
+    /* Botones de Formación */
+    .formation-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .formation-btn {
+        background: var(--card-bg);
+        border: 2px solid var(--text-primary);
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 1.2rem;
+        padding: 1rem;
+        cursor: pointer;
+        box-shadow: 3px 3px 0px var(--text-primary);
+        transition: all 0.1s ease;
+        text-align: center;
+        color: var(--text-primary);
+    }
+
+    .formation-btn:hover, .formation-btn.active {
+        background: var(--text-primary);
+        color: var(--bg-color);
+        box-shadow: none;
+        transform: translate(3px, 3px);
+    }
+
+    /* Modos de Juego */
+    .mode-selector {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .mode-card {
+        flex: 1;
+        min-width: 250px;
+        border: 3px solid var(--text-primary);
+        padding: 1.5rem;
+        cursor: pointer;
+        background: var(--card-bg);
+        box-shadow: 4px 4px 0px var(--text-primary);
+        transition: all 0.1s ease;
+    }
+
+    .mode-card:hover, .mode-card.active {
+        background: rgba(37, 99, 235, 0.08);
+        border-color: var(--text-primary);
+        transform: translateY(-2px);
+    }
+
+    .mode-card.active {
+        box-shadow: 6px 6px 0px var(--text-primary);
+        background: var(--text-primary);
+        color: var(--bg-color);
+    }
+
+    .mode-card.active h3 {
+        color: var(--bg-color);
+    }
+
+    /* Grilla de Campo Táctico */
+    .tactical-setup {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .tactical-setup {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Campo de Fútbol Brutalista */
+    .soccer-field {
+        background: var(--field-green);
+        border: 4px solid var(--text-primary);
+        aspect-ratio: 3/4;
+        position: relative;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        box-shadow: 6px 6px 0px var(--text-primary);
+    }
+
+    /* Líneas del campo */
+    .field-line {
+        position: absolute;
+        border: 2px solid var(--field-line);
+        pointer-events: none;
+    }
+
+    .field-center-circle {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border: 2px solid var(--field-line);
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .field-center-line {
+        position: absolute;
+        width: 100%;
+        height: 0;
+        border-top: 2px solid var(--field-line);
+        top: 50%;
+        left: 0;
+    }
+
+    .field-penalty-area-top {
+        position: absolute;
+        width: 60%;
+        height: 15%;
+        border: 2px solid var(--field-line);
+        border-top: none;
+        top: 0;
+        left: 20%;
+    }
+
+    .field-penalty-area-bottom {
+        position: absolute;
+        width: 60%;
+        height: 15%;
+        border: 2px solid var(--field-line);
+        border-bottom: none;
+        bottom: 0;
+        left: 20%;
+    }
+
+    /* Posiciones del Jugador (Slots) */
+    .field-row {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        width: 100%;
+        z-index: 2;
+    }
+
+    .player-slot {
+        width: 75px;
+        height: 95px;
+        border: 2px dashed rgba(255, 255, 255, 0.6);
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .player-slot:hover:not(.filled) {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: #FFF;
+        transform: scale(1.05);
+    }
+
+    .player-slot.active-slot {
+        border: 2px solid #FFF;
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+
+    .player-slot.filled {
+        border: 2px solid var(--text-primary);
+        background: var(--card-bg);
+        box-shadow: 3px 3px 0px var(--text-primary);
+    }
+
+    .slot-pos-badge {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 0.7rem;
+        background: var(--text-primary);
+        color: var(--bg-color);
+        padding: 2px 6px;
+        border-radius: 2px;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+    }
+
+    .slot-empty-text {
+        font-family: 'Bebas Neue', sans-serif;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.1rem;
+    }
+
+    /* Estilo de Carta de Futbolista en el Slot */
+    .slot-card-name {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 0.65rem;
+        text-align: center;
+        color: var(--text-primary);
+        line-height: 1.1;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 0 4px;
+        text-transform: uppercase;
+    }
+
+    .slot-card-rating {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.6rem;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .slot-card-year {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.55rem;
+        color: var(--text-secondary);
+        font-weight: 800;
+    }
+
+    /* Panel del Draft (Derecha) */
+    .draft-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .draft-options {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Cartas del Draft */
+    .player-card {
+        border: 3px solid var(--text-primary);
+        background: var(--card-bg);
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        box-shadow: 4px 4px 0px var(--text-primary);
+        transition: all 0.1s ease;
+    }
+
+    .player-card:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0px var(--text-primary);
+        background: rgba(37, 99, 235, 0.05);
+    }
+
+    .player-card.selected {
+        background: var(--text-primary);
+        color: var(--bg-color);
+    }
+
+    .card-rating-badge {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2.8rem;
+        line-height: 1;
+        color: var(--text-primary);
+        border-right: 3px solid var(--text-primary);
+        padding-right: 0.8rem;
+        margin-right: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 55px;
+    }
+
+    .player-card.selected .card-rating-badge {
+        color: var(--bg-color);
+        border-color: var(--bg-color);
+    }
+
+    /* Muro de Honor Grid */
+    .muro-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .muro-card {
+        border: 3px solid var(--text-primary);
+        box-shadow: 4px 4px 0px var(--text-primary);
+        background: var(--card-bg);
+        padding: 1.2rem;
+        position: relative;
+    }
+
+    /* Simulación Torneo */
+    .tournament-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .tournament-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .match-event-log {
+        background: #000;
+        color: #00FF00;
+        font-family: 'Courier New', Courier, monospace;
+        padding: 1rem;
+        border-radius: 4px;
+        height: 250px;
+        overflow-y: auto;
+        font-size: 0.85rem;
+        margin-top: 1rem;
+        line-height: 1.4;
+    }
+</style>
+
+<div class="game-container">
+    
+    <!-- PANTALLA 1: SETUP E INICIO -->
+    <div id="screen-setup" class="game-screen active">
+        <div class="brutal-card">
+            <h2 class="brutal-title">DREAM TEAM HISTÓRICO</h2>
+            <p style="font-family: 'Montserrat', sans-serif; font-weight: 600; line-height: 1.6; color: var(--text-secondary); margin-bottom: 2rem;">
+                Arma el equipo de tus sueños reclutando leyendas y planteles campeones de la U de Chile a lo largo de su historia. Una vez armado tu 11 ideal, simula una copa del mundo contra 31 planteles históricos emblemáticos de la U y ¡conságrate campeón!
+            </p>
+
+            <!-- Selector de Modo -->
+            <div style="margin-bottom: 2rem;">
+                <label style="font-family: 'Montserrat', sans-serif; font-weight: 800; text-transform: uppercase; color: var(--text-primary); font-size: 0.9rem; display: block; margin-bottom: 0.8rem;">
+                    1. SELECCIONA EL MODO DE DRAFT
+                </label>
+                <div class="mode-selector">
+                    <div class="mode-card active" id="mode-normal" onclick="selectMode('normal')">
+                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; margin-bottom: 0.5rem; text-transform: uppercase;">Modo Todos los Planteles</h3>
+                        <p style="font-size: 0.8rem; line-height: 1.4; font-family: 'Montserrat', sans-serif;">
+                            Recluta futbolistas de planteles campeones y no campeones (2011-2025). Ideal para armar planteles balanceados.
+                        </p>
+                    </div>
+                    <div class="mode-card" id="mode-champions" onclick="selectMode('champions')">
+                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; margin-bottom: 0.5rem; text-transform: uppercase; color: var(--udechile-red);">Modo Solo Campeones</h3>
+                        <p style="font-size: 0.8rem; line-height: 1.4; font-family: 'Montserrat', sans-serif;">
+                            Solo reclutas jugadores pertenecientes a los 18 planteles campeones de Primera División de la U de Chile.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selector de Formación -->
+            <div style="margin-bottom: 2.5rem;">
+                <label style="font-family: 'Montserrat', sans-serif; font-weight: 800; text-transform: uppercase; color: var(--text-primary); font-size: 0.9rem; display: block; margin-bottom: 0.8rem;">
+                    2. ELIGE LA FORMACIÓN DE TU EQUIPO
+                </label>
+                <div class="formation-grid">
+                    <div class="formation-btn active" onclick="selectFormation('4-4-2', this)">4-4-2</div>
+                    <div class="formation-btn" onclick="selectFormation('4-3-3', this)">4-3-3</div>
+                    <div class="formation-btn" onclick="selectFormation('3-5-2', this)">3-5-2</div>
+                    <div class="formation-btn" onclick="selectFormation('4-2-3-1', this)">4-2-3-1</div>
+                </div>
+            </div>
+
+            <!-- Botón de Inicio -->
+            <button class="btn-primary" style="padding: 1rem 3rem; font-size: 1.3rem; width: 100%; text-align: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;" onclick="startDraft()">
+                INICIAR DRAFT DE JUGADORES
+            </button>
+        </div>
+
+        <!-- Muro de Honor Vista Inicial -->
+        <div class="brutal-card">
+            <h2 class="brutal-title" style="font-size: 2rem;">🏆 MURO DE HONOR</h2>
+            {% if muro_honor %}
+                <div class="muro-grid">
+                    {% for dt in muro_honor %}
+                        <div class="muro-card">
+                            <span style="position: absolute; top: 0.8rem; right: 0.8rem; font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--text-primary);">
+                                Rating {{ dt.rating | round(1) }}
+                            </span>
+                            <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: var(--text-primary); text-transform: uppercase; margin-bottom: 0.2rem; max-width: 70%;">
+                                {{ dt.team_name }}
+                            </h3>
+                            <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 0.8rem;">
+                                Formación: {{ dt.formation }} · {{ dt.date }}
+                            </span>
+                            
+                            <!-- Lista Compacta de Estrellas -->
+                            <div style="border-top: 1px solid var(--text-primary); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.2rem;">
+                                {% for player in dt.players[:3] %}
+                                    <div style="display: flex; justify-content: space-between; font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600;">
+                                        <span>{{ player.name }} ({{ player.pos }})</span>
+                                        <span style="font-weight: 800;">{{ player.rating }}</span>
+                                    </div>
+                                {% endfor %}
+                                {% if dt.players | length > 3 %}
+                                    <span style="font-family: 'Montserrat', sans-serif; font-size: 0.65rem; color: var(--text-tertiary); text-align: right; display: block; font-weight: 800; text-transform: uppercase;">
+                                        y {{ dt.players | length - 3 }} leyendas más...
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; text-align: center; padding: 2rem 0;">
+                    Aún no has coronado ningún Dream Team campeón. ¡Gana la copa mundial y verás tu equipo aquí!
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- PANTALLA 2: EL DRAFT -->
+    <div id="screen-draft" class="game-screen">
+        <div class="brutal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--text-primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+                <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; margin: 0; color: var(--text-primary);">
+                    CONFORMACIÓN DE PLANTEL (<span id="draft-progress">0/11</span>)
+                </h2>
+                <span id="draft-rating-badge" style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--text-primary); background: var(--card-bg); border: 2px solid var(--text-primary); padding: 0.2rem 1rem;">
+                    Media: --
+                </span>
+            </div>
+            
+            <p style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 1.5rem;" id="draft-instructions">
+                Haz clic en una posición vacía del campo táctico para reclutar un jugador.
+            </p>
+
+            <div class="tactical-setup">
+                <!-- Columna Izquierda: El campo -->
+                <div>
+                    <div class="soccer-field" id="interactive-field">
+                        <!-- Líneas decorativas -->
+                        <div class="field-center-circle"></div>
+                        <div class="field-center-line"></div>
+                        <div class="field-penalty-area-top"></div>
+                        <div class="field-penalty-area-bottom"></div>
+
+                        <!-- Las filas de jugadores se inyectarán dinámicamente -->
+                        <div id="field-rows-container" style="height: 100%; display: flex; flex-direction: column; justify-content: space-around;"></div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Panel del Draft / Jugadores disponibles -->
+                <div class="draft-panel">
+                    <div class="brutal-card" style="padding: 1.2rem; box-shadow: 4px 4px 0px var(--text-primary); border-width: 3px;" id="panel-draft-options">
+                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--text-primary); margin-bottom: 0.3rem;" id="draft-panel-title">
+                            Selección de Jugador
+                        </h3>
+                        <span id="draft-pool-origin" style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--udechile-red); text-transform: uppercase; display: block; margin-bottom: 1rem;">
+                            Plantel al azar asignado: --
+                        </span>
+
+                        <div class="draft-options" id="draft-options-container">
+                            <!-- Aquí se inyectan las cartas del draft -->
+                            <div style="text-align: center; color: var(--text-secondary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.8rem; padding: 2rem 0; text-transform: uppercase;">
+                                Toca un espacio en el campo para revelar jugadores
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-advance-tournament" class="btn-primary" style="display: none; padding: 1rem; font-size: 1.2rem; text-align: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;" onclick="goToTournamentSetup()">
+                        AVANZAR AL TORNEO MUNDIAL
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 3: REGISTRO DE EQUIPO PARA EL TORNEO -->
+    <div id="screen-tournament-setup" class="game-screen">
+        <div class="brutal-card">
+            <h2 class="brutal-title">REGISTRA TU CLUB DE LEYENDAS</h2>
+            <div style="max-width: 600px; margin: 0 auto; padding: 1rem 0;">
+                <label style="font-family: 'Montserrat', sans-serif; font-weight: 800; text-transform: uppercase; color: var(--text-primary); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">
+                    Nombra tu Equipo Soñado:
+                </label>
+                <input type="text" id="input-team-name" value="U. de Chile Histórica" style="width: 100%; padding: 1rem; border: 3px solid var(--text-primary); font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.2rem; text-transform: uppercase; outline: none; box-shadow: 4px 4px 0px var(--text-primary); margin-bottom: 2rem;" placeholder="Ej: LOS DE ABAJO FC">
+
+                <div style="border: 3px solid var(--text-primary); padding: 1.5rem; background: rgba(37,99,235,0.05); margin-bottom: 2.5rem;">
+                    <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; margin-bottom: 0.8rem; color: var(--text-primary);">RESUMEN DE ALINEACIÓN</h3>
+                    <div style="display: flex; justify-content: space-between; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem;">
+                        <span>Formación: <strong id="summary-formation" style="color: var(--text-primary);">--</strong></span>
+                        <span>Media del Equipo: <strong id="summary-rating" style="color: var(--text-primary);">--</strong></span>
+                    </div>
+                </div>
+
+                <button class="btn-primary" style="width: 100%; padding: 1.2rem; font-size: 1.4rem; font-family: 'Bebas Neue', sans-serif; justify-content: center;" onclick="generateTournament()">
+                    GENERAR FIXTURE Y GRUPOS DEL MUNDIAL
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 4: EL TORNEO MUNDIAL -->
+    <div id="screen-tournament" class="game-screen">
+        <div class="brutal-card">
+            <h2 class="brutal-title" id="tournament-team-title">TORNEO MUNDIAL DE LEYENDAS</h2>
+            
+            <div class="tournament-grid">
+                <!-- Columna Izquierda: Tu Grupo y Fixture -->
+                <div>
+                    <!-- Tabla del Grupo -->
+                    <div class="brutal-card" style="border-width: 3px; box-shadow: 4px 4px 0px var(--text-primary); padding: 1.2rem; margin-bottom: 1.5rem;">
+                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; margin-bottom: 0.8rem; color: var(--text-primary);" id="group-name-title">
+                            Grupo de Clasificación
+                        </h3>
+                        <table style="width: 100%; border-collapse: collapse; font-family: 'Montserrat', sans-serif; font-size: 0.8rem;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--text-primary); text-transform: uppercase; font-weight: 800; color: var(--text-secondary);">
+                                    <th style="text-align: left; padding: 0.5rem 0;">Equipo</th>
+                                    <th style="text-align: center; width: 40px;">PTS</th>
+                                    <th style="text-align: center; width: 30px;">PJ</th>
+                                    <th style="text-align: center; width: 30px;">GF</th>
+                                    <th style="text-align: center; width: 30px;">GC</th>
+                                </tr>
+                            </thead>
+                            <tbody id="group-table-body">
+                                <!-- Filas de clasificación se inyectan aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Fixture / Lista de Partidos -->
+                    <div class="brutal-card" style="border-width: 3px; box-shadow: 4px 4px 0px var(--text-primary); padding: 1.2rem;">
+                        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; margin-bottom: 0.8rem; color: var(--text-primary);" id="fixture-stage-title">
+                            Fixture Fase de Grupos
+                        </h3>
+                        <div id="fixture-matches-container" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                            <!-- Partidos se inyectan aquí -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Simulación en Vivo o Acciones -->
+                <div class="draft-panel">
+                    <!-- Caja de Partido Activo -->
+                    <div class="brutal-card" style="border-width: 3px; box-shadow: 4px 4px 0px var(--text-primary); padding: 1.5rem; text-align: center;" id="panel-match-simulation">
+                        <span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--udechile-red); text-transform: uppercase; display: block; margin-bottom: 0.5rem;" id="match-sim-phase">
+                            Próximo Partido
+                        </span>
+                        
+                        <div style="display: flex; justify-content: space-around; align-items: center; margin: 1.5rem 0;">
+                            <div style="flex: 1; overflow-wrap: break-word;">
+                                <h4 style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; margin: 0 0 0.3rem 0; color: var(--text-primary);" id="sim-home-name">
+                                    Tu Equipo
+                                </h4>
+                                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text-secondary);" id="sim-home-rating">
+                                    Media: --
+                                </span>
+                            </div>
+
+                            <div style="font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--text-primary); padding: 0 1rem;" id="sim-scoreboard">
+                                0 - 0
+                            </div>
+
+                            <div style="flex: 1; overflow-wrap: break-word;">
+                                <h4 style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; margin: 0 0 0.3rem 0; color: var(--text-primary);" id="sim-away-name">
+                                    Rival
+                                </h4>
+                                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text-secondary);" id="sim-away-rating">
+                                    Media: --
+                                </span>
+                            </div>
+                        </div>
+
+                        <div id="sim-timer" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--text-tertiary); margin-bottom: 1rem; display: none;">
+                            0'
+                        </div>
+
+                        <!-- Bitácora de Eventos de Simulación -->
+                        <div id="sim-events-log" class="match-event-log" style="display: none;"></div>
+
+                        <!-- Controles de Simulación -->
+                        <div style="margin-top: 1.5rem;">
+                            <button id="btn-start-sim" class="btn-primary" style="width: 100%; justify-content: center; padding: 1rem;" onclick="simulateActiveMatch()">
+                                JUGAR PARTIDO
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 5: FINAL DEL JUEGO (CAMPEÓN O ELIMINADO) -->
+    <div id="screen-gameover" class="game-screen">
+        <div class="brutal-card" style="text-align: center; padding: 3rem 2rem;">
+            <!-- Icono y Título Dinámico -->
+            <div id="gameover-status-icon" style="font-size: 5rem; margin-bottom: 1rem;">🏆</div>
+            <h2 id="gameover-title" style="font-family: 'Bebas Neue', sans-serif; font-size: 4rem; margin-top: 0; line-height: 1; color: var(--text-primary);">
+                ¡CAMPEÓN DEL MUNDO!
+            </h2>
+            <p id="gameover-msg" style="font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 1.1rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 2rem auto; line-height: 1.6;">
+                Tu Dream Team de leyendas ha hecho historia superando todas las fases del mundial y consagrándose campeón. ¡Tu alineación ya está lista para el Muro de Honor!
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto;">
+                <!-- Botón de guardar solo si es campeón y está logueado -->
+                {% if current_user %}
+                    <button id="btn-save-muro" class="btn-primary" style="justify-content: center; padding: 1rem; font-size: 1.2rem; background: var(--success); border-color: var(--success);" onclick="saveToHallOfFame()">
+                        INMORTALIZAR EN MURO DE HONOR
+                    </button>
+                {% else %}
+                    <div style="border: 2px dashed var(--text-primary); padding: 1rem; background: rgba(37,99,235,0.05); font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase;">
+                        Inicia sesión para poder guardar tu equipo en el Muro de Honor.
+                    </div>
+                {% endif %}
+                
+                <button class="btn-primary" style="justify-content: center; padding: 1rem; font-size: 1.2rem;" onclick="restartGame()">
+                    VOLVER A JUGAR
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Datos de planteles inyectados de forma segura desde el backend -->
+<script>
+    window.plantelesData = {{ planteles_json | safe }};
+</script>
+
+<!-- Script principal del juego -->
+<script src="{{ url_for('static', path='/juego.js') }}?v=1.0"></script>
+{% endblock %}

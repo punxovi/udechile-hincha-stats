@@ -58,6 +58,19 @@ class SqliteDatabase:
                     entries TEXT NOT NULL -- JSON string con la lista de TableEntry
                 )
             """)
+
+            # Tabla de Muro de Honor (Dream Teams)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS dream_teams (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    team_name TEXT NOT NULL,
+                    formation TEXT NOT NULL,
+                    rating REAL NOT NULL,
+                    players TEXT NOT NULL, -- JSON string de la lista de jugadores seleccionados
+                    date TEXT NOT NULL
+                )
+            """)
             
             conn.commit()
 
