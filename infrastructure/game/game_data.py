@@ -347,7 +347,7 @@ PLANTELES_HISTORICOS = {
     
     # Planteles emblematicos adicionales (No campeones de Primera pero si historicos)
     "1996": {
-        "name": "U. de Chile 1996 (Semifinalista)",
+        "name": "U. de Chile 1996",
         "is_champion": False,
         "year": 1996,
         "players": [
@@ -365,7 +365,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2010": {
-        "name": "U. de Chile 2010 (Pelusso)",
+        "name": "U. de Chile 2010",
         "is_champion": False,
         "year": 2010,
         "players": [
@@ -383,7 +383,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2013": {
-        "name": "U. de Chile 2013 (Darío Franco)",
+        "name": "U. de Chile 2013",
         "is_champion": False,
         "year": 2013,
         "players": [
@@ -401,7 +401,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2015": {
-        "name": "U. de Chile 2015 (Copa Chile)",
+        "name": "U. de Chile 2015",
         "is_champion": False,
         "year": 2015,
         "players": [
@@ -419,7 +419,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2018": {
-        "name": "U. de Chile 2018 (Soteldo)",
+        "name": "U. de Chile 2018",
         "is_champion": False,
         "year": 2018,
         "players": [
@@ -437,7 +437,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2019": {
-        "name": "U. de Chile 2019 (Transición)",
+        "name": "U. de Chile 2019",
         "is_champion": False,
         "year": 2019,
         "players": [
@@ -455,7 +455,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2021": {
-        "name": "U. de Chile 2021 (Larrivey)",
+        "name": "U. de Chile 2021",
         "is_champion": False,
         "year": 2021,
         "players": [
@@ -473,7 +473,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2022": {
-        "name": "U. de Chile 2022 (Osorio/Assadi)",
+        "name": "U. de Chile 2022",
         "is_champion": False,
         "year": 2022,
         "players": [
@@ -491,7 +491,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2023": {
-        "name": "U. de Chile 2023 (Pellegrino)",
+        "name": "U. de Chile 2023",
         "is_champion": False,
         "year": 2023,
         "players": [
@@ -509,7 +509,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2024": {
-        "name": "U. de Chile 2024 (Álvarez)",
+        "name": "U. de Chile 2024",
         "is_champion": False,
         "year": 2024,
         "players": [
@@ -527,7 +527,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2025": {
-        "name": "U. de Chile 2025 (Actual)",
+        "name": "U. de Chile 2025",
         "is_champion": False,
         "year": 2025,
         "players": [
@@ -545,7 +545,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2005": {
-        "name": "U. de Chile 2005 (Finalista)",
+        "name": "U. de Chile 2005",
         "is_champion": False,
         "year": 2005,
         "players": [
@@ -563,7 +563,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2006": {
-        "name": "U. de Chile 2006 (Finalista)",
+        "name": "U. de Chile 2006",
         "is_champion": False,
         "year": 2006,
         "players": [

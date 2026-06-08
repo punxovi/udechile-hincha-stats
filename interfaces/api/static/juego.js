@@ -1,7 +1,6 @@
 // Juego de Alineaciones Históricas de la Universidad de Chile
 
 let selectedMode = 'normal';
-let selectedDifficulty = 'normal'; // 'easy', 'normal', 'hard'
 let selectedFormation = '4-4-2';
 let activeSlotIndex = null;
 let dreamTeam = Array(11).fill(null);
@@ -14,6 +13,7 @@ let currentSorteadoPlantel = null;
 let selectedPlayerToPlace = null; // Jugador seleccionado de la lista esperando ser ubicado
 let rouletteInterval = null;
 let isSpinning = false;
+let availablePlantelKeys = [];
 
 // Datos de torneo
 let teamName = "";
@@ -88,12 +88,7 @@ function selectMode(mode) {
     document.getElementById(`mode-${mode}`).classList.add('active');
 }
 
-// Cambiar dificultad del juego
-function selectDifficulty(diff) {
-    selectedDifficulty = diff;
-    document.querySelectorAll('.mode-card[id^="diff-"]').forEach(el => el.classList.remove('active'));
-    document.getElementById(`diff-${diff}`).classList.add('active');
-}
+
 
 // Elegir formación
 function selectFormation(formation, btnEl) {
@@ -108,13 +103,16 @@ function startDraft() {
     draftProgress = 0;
     teamRating = 0.0;
     
-    // Asignar re-sorteos según dificultad
-    if (selectedDifficulty === 'easy') {
-        resortCount = 4;
-    } else if (selectedDifficulty === 'normal') {
-        resortCount = 2;
+    // Asignar re-sorteos
+    resortCount = 2;
+    
+    // Inicializar pool de planteles de la ruleta
+    const allPlanteles = window.plantelesData;
+    const keys = Object.keys(allPlanteles);
+    if (selectedMode === 'champions') {
+        availablePlantelKeys = keys.filter(k => allPlanteles[k].is_champion === true);
     } else {
-        resortCount = 0;
+        availablePlantelKeys = keys;
     }
     
     selectedPlayerToPlace = null;
@@ -286,10 +284,10 @@ function startRouletteSpin() {
     const allPlanteles = window.plantelesData;
     const keys = Object.keys(allPlanteles);
     
-    // Filtrar planteles segun el modo
-    let eligibleKeys = keys;
-    if (selectedMode === 'champions') {
-        eligibleKeys = keys.filter(k => allPlanteles[k].is_champion === true);
+    // Filtrar planteles segun el modo y disponibilidad
+    let eligibleKeys = [...availablePlantelKeys];
+    if (eligibleKeys.length === 0) {
+        eligibleKeys = keys;
     }
     
     // Seleccionar plantel al azar
@@ -433,6 +431,15 @@ function selectPlayerForPlacement(player, itemEl) {
 function placePlayerInSlot(slotId) {
     if (!selectedPlayerToPlace) return;
     
+    // Si estamos en modo Solo Campeones, removemos el plantel del pool disponible para no repetirlo
+    if (selectedMode === 'champions' && currentSorteadoPlantel) {
+        const allPlanteles = window.plantelesData;
+        const keyToRemove = Object.keys(allPlanteles).find(k => allPlanteles[k].name === currentSorteadoPlantel.name);
+        if (keyToRemove) {
+            availablePlantelKeys = availablePlantelKeys.filter(k => k !== keyToRemove);
+        }
+    }
+    
     dreamTeam[slotId] = {
         name: selectedPlayerToPlace.name,
         pos: selectedPlayerToPlace.pos,
@@ -511,10 +518,6 @@ function generateTournament() {
         const p = allPlanteles[key];
         const sum = p.players.reduce((acc, pl) => acc + pl.rating, 0);
         let avg = sum / p.players.length;
-        
-        if (selectedDifficulty === 'hard') {
-            avg += 3.0;
-        }
         
         tournamentTeams.push({
             id: tournamentTeams.length,
