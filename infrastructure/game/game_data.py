@@ -3,71 +3,71 @@
 
 PLANTELES_HISTORICOS = {
     "1940": {
-        "name": "U. de Chile 1940 (Campeón)",
+        "name": "U. de Chile 1940 (Primera Estrella)",
         "is_champion": True,
         "year": 1940,
         "players": [
-            {"name": "Eduardo Simian", "pos": "ARQ", "rating": 82},
-            {"name": "Víctor Alonso", "pos": "DEF", "rating": 80},
-            {"name": "Luis Vidal", "pos": "DEF", "rating": 79},
-            {"name": "Óscar Sánchez", "pos": "MED", "rating": 80},
-            {"name": "Ángel Lira", "pos": "MED", "rating": 78},
-            {"name": "Francisco Las Heras", "pos": "MED", "rating": 80},
-            {"name": "Abilio Neves", "pos": "DEL", "rating": 82},
-            {"name": "José Balbuena", "pos": "DEL", "rating": 83},
-            {"name": "Ubaldo Cruche", "pos": "DEL", "rating": 84},
-            {"name": "Guillermo Riera", "pos": "DEL", "rating": 78},
-            {"name": "Eduardo Holzapfel", "pos": "DEL", "rating": 76}
+            {"name": "Eduardo Simian", "pos": "ARQ", "rating": 80},
+            {"name": "Víctor Alonso", "pos": "DEF", "rating": 78},
+            {"name": "Luis Vidal", "pos": "DEF", "rating": 77},
+            {"name": "Óscar Sánchez", "pos": "MED", "rating": 78},
+            {"name": "Ángel Lira", "pos": "MED", "rating": 76},
+            {"name": "Francisco Las Heras", "pos": "MED", "rating": 78},
+            {"name": "Abilio Neves", "pos": "DEL", "rating": 80},
+            {"name": "José Balbuena", "pos": "DEL", "rating": 81},
+            {"name": "Ubaldo Cruche", "pos": "DEL", "rating": 82},
+            {"name": "Guillermo Riera", "pos": "DEL", "rating": 76},
+            {"name": "Eduardo Holzapfel", "pos": "DEL", "rating": 74}
         ]
     },
     "1959": {
-        "name": "U. de Chile 1959 (Ballet Azul)",
+        "name": "U. de Chile 1959 (Ballet Azul - Nace el Mito)",
         "is_champion": True,
         "year": 1959,
         "players": [
             {"name": "Manuel Astorga", "pos": "ARQ", "rating": 83},
-            {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 86},
-            {"name": "Humberto Donoso", "pos": "DEF", "rating": 83},
-            {"name": "Carlos Contreras", "pos": "DEF", "rating": 84},
-            {"name": "Sergio Navarro", "pos": "DEF", "rating": 83},
-            {"name": "Alfonso Sepúlveda", "pos": "MED", "rating": 82},
-            {"name": "Braulio Musso", "pos": "DEL", "rating": 83},
-            {"name": "René Meléndez", "pos": "DEL", "rating": 84},
-            {"name": "Carlos Campos", "pos": "DEL", "rating": 87},
-            {"name": "Leonel Sánchez", "pos": "DEL", "rating": 88},
-            {"name": "Jaime Ramírez", "pos": "DEL", "rating": 85}
-        ]
-    },
-    "1962": {
-        "name": "U. de Chile 1962 (Ballet Azul)",
-        "is_champion": True,
-        "year": 1962,
-        "players": [
-            {"name": "Manuel Astorga", "pos": "ARQ", "rating": 84},
-            {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 87},
-            {"name": "Humberto Donoso", "pos": "DEF", "rating": 84},
-            {"name": "Carlos Contreras", "pos": "DEF", "rating": 84},
-            {"name": "Sergio Navarro", "pos": "DEF", "rating": 83},
-            {"name": "Alfonso Sepúlveda", "pos": "MED", "rating": 82},
-            {"name": "Ernesto Álvarez", "pos": "MED", "rating": 86},
-            {"name": "Braulio Musso", "pos": "DEL", "rating": 83},
-            {"name": "Carlos Campos", "pos": "DEL", "rating": 88},
-            {"name": "Leonel Sánchez", "pos": "DEL", "rating": 88},
+            {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 85},
+            {"name": "Humberto Donoso", "pos": "DEF", "rating": 82},
+            {"name": "Carlos Contreras", "pos": "DEF", "rating": 83},
+            {"name": "Sergio Navarro", "pos": "DEF", "rating": 82},
+            {"name": "Alfonso Sepúlveda", "pos": "MED", "rating": 81},
+            {"name": "Braulio Musso", "pos": "DEL", "rating": 82},
+            {"name": "René Meléndez", "pos": "DEL", "rating": 83},
+            {"name": "Carlos Campos", "pos": "DEL", "rating": 86},
+            {"name": "Leonel Sánchez", "pos": "DEL", "rating": 87},
             {"name": "Jaime Ramírez", "pos": "DEL", "rating": 84}
         ]
     },
+    "1962": {
+        "name": "U. de Chile 1962 (Ballet Azul - Campeón Invicto Local)",
+        "is_champion": True,
+        "year": 1962,
+        "players": [
+            {"name": "Manuel Astorga", "pos": "ARQ", "rating": 85},
+            {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 88},
+            {"name": "Humberto Donoso", "pos": "DEF", "rating": 84},
+            {"name": "Carlos Contreras", "pos": "DEF", "rating": 85},
+            {"name": "Sergio Navarro", "pos": "DEF", "rating": 84},
+            {"name": "Alfonso Sepúlveda", "pos": "MED", "rating": 83},
+            {"name": "Ernesto Álvarez", "pos": "MED", "rating": 87},
+            {"name": "Braulio Musso", "pos": "DEL", "rating": 84},
+            {"name": "Carlos Campos", "pos": "DEL", "rating": 90},
+            {"name": "Leonel Sánchez", "pos": "DEL", "rating": 90},
+            {"name": "Jaime Ramírez", "pos": "DEL", "rating": 85}
+        ]
+    },
     "1964": {
-        "name": "U. de Chile 1964 (Ballet Azul)",
+        "name": "U. de Chile 1964 (Ballet Azul - Campaña Récord)",
         "is_champion": True,
         "year": 1964,
         "players": [
             {"name": "Manuel Astorga", "pos": "ARQ", "rating": 83},
             {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 86},
-            {"name": "Humberto Donoso", "pos": "DEF", "rating": 84},
+            {"name": "Humberto Donoso", "pos": "DEF", "rating": 83},
             {"name": "Carlos Contreras", "pos": "DEF", "rating": 84},
             {"name": "Roberto Hodge", "pos": "MED", "rating": 84},
-            {"name": "Rubén Marcos", "pos": "MED", "rating": 87},
-            {"name": "Pedro Araya", "pos": "DEL", "rating": 85},
+            {"name": "Rubén Marcos", "pos": "MED", "rating": 86},
+            {"name": "Pedro Araya", "pos": "DEL", "rating": 84},
             {"name": "Ernesto Álvarez", "pos": "MED", "rating": 85},
             {"name": "Carlos Campos", "pos": "DEL", "rating": 88},
             {"name": "Leonel Sánchez", "pos": "DEL", "rating": 87},
@@ -75,79 +75,79 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "1965": {
-        "name": "U. de Chile 1965 (Ballet Azul)",
+        "name": "U. de Chile 1965 (Ballet Azul - Bicampeón)",
         "is_champion": True,
         "year": 1965,
         "players": [
-            {"name": "Manuel Astorga", "pos": "ARQ", "rating": 83},
-            {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 85},
-            {"name": "Humberto Donoso", "pos": "DEF", "rating": 84},
-            {"name": "Hugo Villanueva", "pos": "DEF", "rating": 83},
-            {"name": "Roberto Hodge", "pos": "MED", "rating": 84},
-            {"name": "Rubén Marcos", "pos": "MED", "rating": 88},
-            {"name": "Pedro Araya", "pos": "DEL", "rating": 86},
-            {"name": "Carlos Campos", "pos": "DEL", "rating": 87},
-            {"name": "Leonel Sánchez", "pos": "DEL", "rating": 87},
-            {"name": "Guillermo Yávar", "pos": "MED", "rating": 83},
-            {"name": "Jaime Ramírez", "pos": "DEL", "rating": 82}
+            {"name": "Manuel Astorga", "pos": "ARQ", "rating": 82},
+            {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 84},
+            {"name": "Humberto Donoso", "pos": "DEF", "rating": 83},
+            {"name": "Hugo Villanueva", "pos": "DEF", "rating": 82},
+            {"name": "Roberto Hodge", "pos": "MED", "rating": 83},
+            {"name": "Rubén Marcos", "pos": "MED", "rating": 87},
+            {"name": "Pedro Araya", "pos": "DEL", "rating": 85},
+            {"name": "Carlos Campos", "pos": "DEL", "rating": 86},
+            {"name": "Leonel Sánchez", "pos": "DEL", "rating": 86},
+            {"name": "Guillermo Yávar", "pos": "MED", "rating": 82},
+            {"name": "Jaime Ramírez", "pos": "DEL", "rating": 81}
         ]
     },
     "1967": {
-        "name": "U. de Chile 1967 (Ballet Azul)",
+        "name": "U. de Chile 1967 (Ballet Azul - La Quinta)",
         "is_champion": True,
         "year": 1967,
         "players": [
-            {"name": "Adolfo Nef", "pos": "ARQ", "rating": 84},
-            {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 84},
-            {"name": "Humberto Donoso", "pos": "DEF", "rating": 83},
-            {"name": "Alberto Quintano", "pos": "DEF", "rating": 87},
-            {"name": "Roberto Hodge", "pos": "MED", "rating": 84},
-            {"name": "Rubén Marcos", "pos": "MED", "rating": 87},
-            {"name": "Pedro Araya", "pos": "DEL", "rating": 86},
-            {"name": "Guillermo Yávar", "pos": "MED", "rating": 84},
-            {"name": "Carlos Campos", "pos": "DEL", "rating": 86},
-            {"name": "Leonel Sánchez", "pos": "DEL", "rating": 86},
-            {"name": "Jean-Pierre Tokoto", "pos": "DEL", "rating": 80}
+            {"name": "Adolfo Nef", "pos": "ARQ", "rating": 83},
+            {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 83},
+            {"name": "Humberto Donoso", "pos": "DEF", "rating": 82},
+            {"name": "Alberto Quintano", "pos": "DEF", "rating": 86},
+            {"name": "Roberto Hodge", "pos": "MED", "rating": 83},
+            {"name": "Rubén Marcos", "pos": "MED", "rating": 86},
+            {"name": "Pedro Araya", "pos": "DEL", "rating": 85},
+            {"name": "Guillermo Yávar", "pos": "MED", "rating": 83},
+            {"name": "Carlos Campos", "pos": "DEL", "rating": 85},
+            {"name": "Leonel Sánchez", "pos": "DEL", "rating": 85},
+            {"name": "Jean-Pierre Tokoto", "pos": "DEL", "rating": 79}
         ]
     },
     "1969": {
-        "name": "U. de Chile 1969 (Fin Ballet)",
+        "name": "U. de Chile 1969 (Fin del Ballet Azul)",
         "is_champion": True,
         "year": 1969,
         "players": [
-            {"name": "Adolfo Nef", "pos": "ARQ", "rating": 83},
-            {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 82},
-            {"name": "Alberto Quintano", "pos": "DEF", "rating": 88},
-            {"name": "Juan Carlos Oleniak", "pos": "DEL", "rating": 82},
-            {"name": "Roberto Hodge", "pos": "MED", "rating": 84},
-            {"name": "Rubén Marcos", "pos": "MED", "rating": 86},
-            {"name": "Pedro Araya", "pos": "DEL", "rating": 85},
-            {"name": "Guillermo Yávar", "pos": "MED", "rating": 84},
-            {"name": "Carlos Campos", "pos": "DEL", "rating": 84},
-            {"name": "Jorge Spedaletti", "pos": "DEL", "rating": 83},
-            {"name": "Esteban Aránguiz", "pos": "MED", "rating": 79}
+            {"name": "Adolfo Nef", "pos": "ARQ", "rating": 82},
+            {"name": "Luis Eyzaguirre", "pos": "DEF", "rating": 81},
+            {"name": "Alberto Quintano", "pos": "DEF", "rating": 86},
+            {"name": "Juan Carlos Oleniak", "pos": "DEL", "rating": 80},
+            {"name": "Roberto Hodge", "pos": "MED", "rating": 83},
+            {"name": "Rubén Marcos", "pos": "MED", "rating": 84},
+            {"name": "Pedro Araya", "pos": "DEL", "rating": 83},
+            {"name": "Guillermo Yávar", "pos": "MED", "rating": 83},
+            {"name": "Carlos Campos", "pos": "DEL", "rating": 82},
+            {"name": "Jorge Spedaletti", "pos": "DEL", "rating": 82},
+            {"name": "Esteban Aránguiz", "pos": "MED", "rating": 78}
         ]
     },
     "1994": {
-        "name": "U. de Chile 1994 (Matador Salas)",
+        "name": "U. de Chile 1994 (El Retorno tras 25 Años)",
         "is_champion": True,
         "year": 1994,
         "players": [
-            {"name": "Sergio Vargas", "pos": "ARQ", "rating": 87},
-            {"name": "Rogelio Delgado", "pos": "DEF", "rating": 85},
-            {"name": "Ronald Fuentes", "pos": "DEF", "rating": 84},
-            {"name": "Cristián Castañeda", "pos": "DEF", "rating": 82},
-            {"name": "Patricio Mardones", "pos": "MED", "rating": 83},
-            {"name": "Luis Musrri", "pos": "MED", "rating": 84},
-            {"name": "Esteban Valencia", "pos": "MED", "rating": 83},
-            {"name": "Raúl Aredes", "pos": "MED", "rating": 82},
-            {"name": "Víctor Hugo Castañeda", "pos": "MED", "rating": 83},
+            {"name": "Sergio Vargas", "pos": "ARQ", "rating": 86},
+            {"name": "Rogelio Delgado", "pos": "DEF", "rating": 84},
+            {"name": "Ronald Fuentes", "pos": "DEF", "rating": 83},
+            {"name": "Cristián Castañeda", "pos": "DEF", "rating": 81},
+            {"name": "Patricio Mardones", "pos": "MED", "rating": 82},
+            {"name": "Luis Musrri", "pos": "MED", "rating": 83},
+            {"name": "Esteban Valencia", "pos": "MED", "rating": 82},
+            {"name": "Raúl Aredes", "pos": "MED", "rating": 81},
+            {"name": "Víctor Hugo Castañeda", "pos": "MED", "rating": 82},
             {"name": "Marcelo Salas", "pos": "DEL", "rating": 88},
-            {"name": "Juan Carlos Ibáñez", "pos": "DEL", "rating": 82}
+            {"name": "Juan Carlos Ibáñez", "pos": "DEL", "rating": 81}
         ]
     },
     "1995": {
-        "name": "U. de Chile 1995 (Bicampeón)",
+        "name": "U. de Chile 1995 (Bicampeón de los Noventa)",
         "is_champion": True,
         "year": 1995,
         "players": [
@@ -155,17 +155,17 @@ PLANTELES_HISTORICOS = {
             {"name": "Ronald Fuentes", "pos": "DEF", "rating": 84},
             {"name": "Cristián Castañeda", "pos": "DEF", "rating": 82},
             {"name": "Miguel Ponce", "pos": "DEF", "rating": 80},
-            {"name": "Luis Musrri", "pos": "MED", "rating": 84},
-            {"name": "Patricio Mardones", "pos": "MED", "rating": 83},
-            {"name": "Esteban Valencia", "pos": "MED", "rating": 84},
-            {"name": "Leonardo Rodríguez", "pos": "MED", "rating": 87},
-            {"name": "Marcelo Salas", "pos": "DEL", "rating": 89},
+            {"name": "Luis Musrri", "pos": "MED", "rating": 83},
+            {"name": "Patricio Mardones", "pos": "MED", "rating": 82},
+            {"name": "Esteban Valencia", "pos": "MED", "rating": 83},
+            {"name": "Leonardo Rodríguez", "pos": "MED", "rating": 86},
+            {"name": "Marcelo Salas", "pos": "DEL", "rating": 90},
             {"name": "Juan Carlos Ibáñez", "pos": "DEL", "rating": 81},
             {"name": "Rodrigo Goldberg", "pos": "DEL", "rating": 81}
         ]
     },
     "1999": {
-        "name": "U. de Chile 1999 (Racha Invicto)",
+        "name": "U. de Chile 1999 (Campeón - Racha 33 Invicto)",
         "is_champion": True,
         "year": 1999,
         "players": [
@@ -183,57 +183,57 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2000": {
-        "name": "U. de Chile 2000 (Vaccia)",
+        "name": "U. de Chile 2000 (Bicampeón de Vaccia)",
         "is_champion": True,
         "year": 2000,
         "players": [
-            {"name": "Sergio Vargas", "pos": "ARQ", "rating": 84},
-            {"name": "Ronald Fuentes", "pos": "DEF", "rating": 82},
-            {"name": "Rafael Olarra", "pos": "DEF", "rating": 83},
-            {"name": "Ricardo Rojas", "pos": "DEF", "rating": 82},
-            {"name": "Luis Musrri", "pos": "MED", "rating": 81},
-            {"name": "Clarence Acuña", "pos": "MED", "rating": 83},
-            {"name": "Pablo Galdames", "pos": "MED", "rating": 81},
-            {"name": "Rodrigo Tello", "pos": "MED", "rating": 84},
-            {"name": "Pedro González", "pos": "DEL", "rating": 85},
-            {"name": "Rodrigo Barrera", "pos": "DEL", "rating": 82},
-            {"name": "Flavio Maestri", "pos": "DEL", "rating": 82}
+            {"name": "Sergio Vargas", "pos": "ARQ", "rating": 83},
+            {"name": "Ronald Fuentes", "pos": "DEF", "rating": 81},
+            {"name": "Rafael Olarra", "pos": "DEF", "rating": 82},
+            {"name": "Ricardo Rojas", "pos": "DEF", "rating": 81},
+            {"name": "Luis Musrri", "pos": "MED", "rating": 80},
+            {"name": "Clarence Acuña", "pos": "MED", "rating": 82},
+            {"name": "Pablo Galdames", "pos": "MED", "rating": 80},
+            {"name": "Rodrigo Tello", "pos": "MED", "rating": 83},
+            {"name": "Pedro González", "pos": "DEL", "rating": 84},
+            {"name": "Rodrigo Barrera", "pos": "DEL", "rating": 81},
+            {"name": "Flavio Maestri", "pos": "DEL", "rating": 81}
         ]
     },
     "2004": {
-        "name": "U. de Chile 2004 (Apertura)",
+        "name": "U. de Chile Apertura 2004 (Campeón - Penales en Calama)",
         "is_champion": True,
         "year": 2004,
         "players": [
             {"name": "Johnny Herrera", "pos": "ARQ", "rating": 82},
             {"name": "Arnaldo Espínola", "pos": "DEF", "rating": 80},
             {"name": "Adrián Rojas", "pos": "DEF", "rating": 78},
-            {"name": "Mauricio Aros", "pos": "DEF", "rating": 80},
+            {"name": "Mauricio Aros", "pos": "DEF", "rating": 79},
             {"name": "Manuel Iturra", "pos": "MED", "rating": 79},
-            {"name": "Luis Musrri", "pos": "MED", "rating": 79},
+            {"name": "Luis Musrri", "pos": "MED", "rating": 78},
             {"name": "Walter Montillo", "pos": "MED", "rating": 80},
-            {"name": "Víctor Hugo Ávalos", "pos": "MED", "rating": 77},
+            {"name": "Víctor Hugo Ávalos", "pos": "MED", "rating": 76},
             {"name": "Diego Rivarola", "pos": "DEL", "rating": 82},
-            {"name": "Sergio Gioino", "pos": "DEL", "rating": 83},
-            {"name": "Marco Olea", "pos": "DEL", "rating": 78}
+            {"name": "Sergio Gioino", "pos": "DEL", "rating": 82},
+            {"name": "Marco Olea", "pos": "DEL", "rating": 77}
         ]
     },
     "2009": {
-        "name": "U. de Chile 2009 (Apertura)",
+        "name": "U. de Chile Apertura 2009 (Campeón - Markarián)",
         "is_champion": True,
         "year": 2009,
         "players": [
-            {"name": "Miguel Pinto", "pos": "ARQ", "rating": 83},
-            {"name": "Osvaldo González", "pos": "DEF", "rating": 81},
-            {"name": "Rafael Olarra", "pos": "DEF", "rating": 80},
+            {"name": "Miguel Pinto", "pos": "ARQ", "rating": 82},
+            {"name": "Osvaldo González", "pos": "DEF", "rating": 80},
+            {"name": "Rafael Olarra", "pos": "DEF", "rating": 79},
             {"name": "José Rojas", "pos": "DEF", "rating": 79},
-            {"name": "Marco Estrada", "pos": "MED", "rating": 82},
-            {"name": "Manuel Iturra", "pos": "MED", "rating": 80},
-            {"name": "Felipe Seymour", "pos": "MED", "rating": 79},
+            {"name": "Marco Estrada", "pos": "MED", "rating": 81},
+            {"name": "Manuel Iturra", "pos": "MED", "rating": 79},
+            {"name": "Felipe Seymour", "pos": "MED", "rating": 78},
             {"name": "Walter Montillo", "pos": "MED", "rating": 83},
-            {"name": "Emilio Hernández", "pos": "DEL", "rating": 80},
-            {"name": "Diego Rivarola", "pos": "DEL", "rating": 79},
-            {"name": "Juan Manuel Olivera", "pos": "DEL", "rating": 83}
+            {"name": "Emilio Hernández", "pos": "DEL", "rating": 79},
+            {"name": "Diego Rivarola", "pos": "DEL", "rating": 78},
+            {"name": "Juan Manuel Olivera", "pos": "DEL", "rating": 82}
         ]
     },
     "2011_AP": {
@@ -291,12 +291,12 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2012": {
-        "name": "U. de Chile 2012 (Apertura)",
+        "name": "U. de Chile Apertura 2012 (Tricampeón)",
         "is_champion": True,
         "year": 2012,
         "players": [
             {"name": "Johnny Herrera", "pos": "ARQ", "rating": 85},
-            {"name": "Matías Rodríguez", "pos": "DEF", "rating": 84},
+            {"name": "Matías Rodríguez", "pos": "DEF", "rating": 83},
             {"name": "Osvaldo González", "pos": "DEF", "rating": 83},
             {"name": "José Rojas", "pos": "DEF", "rating": 82},
             {"name": "Eugenio Mena", "pos": "DEF", "rating": 83},
@@ -309,7 +309,7 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2014": {
-        "name": "U. de Chile 2014 (Apertura)",
+        "name": "U. de Chile Apertura 2014 (Campeón - Lasarte)",
         "is_champion": True,
         "year": 2014,
         "players": [
@@ -327,21 +327,21 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2017": {
-        "name": "U. de Chile 2017 (Clausura)",
+        "name": "U. de Chile Clausura 2017 (Último Campeón - Hoyos)",
         "is_champion": True,
         "year": 2017,
         "players": [
-            {"name": "Johnny Herrera", "pos": "ARQ", "rating": 82},
+            {"name": "Johnny Herrera", "pos": "ARQ", "rating": 81},
             {"name": "Gonzalo Jara", "pos": "DEF", "rating": 79},
             {"name": "Christian Vilches", "pos": "DEF", "rating": 76},
-            {"name": "Jean Beausejour", "pos": "DEF", "rating": 80},
-            {"name": "Matías Rodríguez", "pos": "DEF", "rating": 79},
-            {"name": "Lorenzo Reyes", "pos": "MED", "rating": 82},
-            {"name": "Gustavo Lorenzetti", "pos": "MED", "rating": 78},
+            {"name": "Jean Beausejour", "pos": "DEF", "rating": 79},
+            {"name": "Matías Rodríguez", "pos": "DEF", "rating": 78},
+            {"name": "Lorenzo Reyes", "pos": "MED", "rating": 81},
+            {"name": "Gustavo Lorenzetti", "pos": "MED", "rating": 77},
             {"name": "David Pizarro", "pos": "MED", "rating": 80},
             {"name": "Felipe Mora", "pos": "DEL", "rating": 83},
-            {"name": "Leandro Benegas", "pos": "DEL", "rating": 77},
-            {"name": "Sebastián Ubilla", "pos": "DEL", "rating": 76}
+            {"name": "Leandro Benegas", "pos": "DEL", "rating": 76},
+            {"name": "Sebastián Ubilla", "pos": "DEL", "rating": 75}
         ]
     },
     
