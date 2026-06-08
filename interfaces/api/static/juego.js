@@ -975,9 +975,7 @@ function simulatePenalties(home, away) {
         
         btn.disabled = false;
         if (pensHome > pensAway) {
-            btn.textContent = "AVANZAR DE RONDA";
-            btn.setAttribute('data-action', 'setup');
-            playoffStageIndex++;
+            advancePlayoffs();
         } else {
             btn.textContent = "VER RESULTADOS";
             btn.setAttribute('data-action', 'gameover');
@@ -988,6 +986,7 @@ function simulatePenalties(home, away) {
 
 // Avanzar playoffs
 function advancePlayoffs() {
+    playoffStageIndex++;
     if (playoffStageIndex < 4) {
         playoffOpponent = selectPlayoffOpponent();
         const btn = document.getElementById('btn-start-sim');
