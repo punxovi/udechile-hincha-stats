@@ -237,39 +237,57 @@ PLANTELES_HISTORICOS = {
         ]
     },
     "2011_AP": {
-        "name": "U. de Chile 2011 (Ap - Sampaoli)",
+        "name": "U. de Chile Apertura 2011 (Campeón)",
         "is_champion": True,
         "year": 2011,
         "players": [
-            {"name": "Johnny Herrera", "pos": "ARQ", "rating": 85},
-            {"name": "Matías Rodríguez", "pos": "DEF", "rating": 82},
-            {"name": "José Rojas", "pos": "DEF", "rating": 82},
+            {"name": "Johnny Herrera", "pos": "ARQ", "rating": 83},
+            {"name": "Matías Rodríguez", "pos": "DEF", "rating": 80},
+            {"name": "José Rojas", "pos": "DEF", "rating": 81},
             {"name": "Albert Acevedo", "pos": "DEF", "rating": 78},
-            {"name": "Charles Aránguiz", "pos": "MED", "rating": 85},
-            {"name": "Felipe Seymour", "pos": "MED", "rating": 81},
-            {"name": "Guillermo Marino", "pos": "MED", "rating": 81},
-            {"name": "Gustavo Lorenzetti", "pos": "MED", "rating": 82},
-            {"name": "Eduardo Vargas", "pos": "DEL", "rating": 86},
-            {"name": "Gustavo Canales", "pos": "DEL", "rating": 83},
-            {"name": "Edson Puch", "pos": "DEL", "rating": 84}
+            {"name": "Charles Aránguiz", "pos": "MED", "rating": 83},
+            {"name": "Felipe Seymour", "pos": "MED", "rating": 80},
+            {"name": "Guillermo Marino", "pos": "MED", "rating": 79},
+            {"name": "Gustavo Lorenzetti", "pos": "MED", "rating": 80},
+            {"name": "Eduardo Vargas", "pos": "DEL", "rating": 83},
+            {"name": "Gustavo Canales", "pos": "DEL", "rating": 81},
+            {"name": "Edson Puch", "pos": "DEL", "rating": 82}
         ]
     },
     "2011_CL": {
-        "name": "U. de Chile 2011 (Cl - Triplete)",
+        "name": "U. de Chile Clausura 2011 (Campeón)",
         "is_champion": True,
         "year": 2011,
         "players": [
-            {"name": "Johnny Herrera", "pos": "ARQ", "rating": 87},
-            {"name": "Osvaldo González", "pos": "DEF", "rating": 84},
-            {"name": "Marcos González", "pos": "DEF", "rating": 85},
-            {"name": "José Rojas", "pos": "DEF", "rating": 84},
-            {"name": "Matías Rodríguez", "pos": "DEF", "rating": 84},
-            {"name": "Marcelo Díaz", "pos": "MED", "rating": 86},
-            {"name": "Charles Aránguiz", "pos": "MED", "rating": 87},
-            {"name": "Eugenio Mena", "pos": "DEF", "rating": 83},
-            {"name": "Gustavo Lorenzetti", "pos": "MED", "rating": 83},
-            {"name": "Eduardo Vargas", "pos": "DEL", "rating": 89},
-            {"name": "Gustavo Canales", "pos": "DEL", "rating": 84}
+            {"name": "Johnny Herrera", "pos": "ARQ", "rating": 86},
+            {"name": "Osvaldo González", "pos": "DEF", "rating": 83},
+            {"name": "Marcos González", "pos": "DEF", "rating": 84},
+            {"name": "José Rojas", "pos": "DEF", "rating": 83},
+            {"name": "Matías Rodríguez", "pos": "DEF", "rating": 83},
+            {"name": "Marcelo Díaz", "pos": "MED", "rating": 84},
+            {"name": "Charles Aránguiz", "pos": "MED", "rating": 85},
+            {"name": "Eugenio Mena", "pos": "DEF", "rating": 82},
+            {"name": "Gustavo Lorenzetti", "pos": "MED", "rating": 82},
+            {"name": "Eduardo Vargas", "pos": "DEL", "rating": 87},
+            {"name": "Gustavo Canales", "pos": "DEL", "rating": 83}
+        ]
+    },
+    "2011_SUD": {
+        "name": "U. de Chile Sudamericana 2011 (Campeón)",
+        "is_champion": True,
+        "year": 2011,
+        "players": [
+            {"name": "Johnny Herrera", "pos": "ARQ", "rating": 90},
+            {"name": "Osvaldo González", "pos": "DEF", "rating": 87},
+            {"name": "Marcos González", "pos": "DEF", "rating": 89},
+            {"name": "José Rojas", "pos": "DEF", "rating": 88},
+            {"name": "Matías Rodríguez", "pos": "DEF", "rating": 88},
+            {"name": "Marcelo Díaz", "pos": "MED", "rating": 90},
+            {"name": "Charles Aránguiz", "pos": "MED", "rating": 91},
+            {"name": "Eugenio Mena", "pos": "DEF", "rating": 87},
+            {"name": "Gustavo Lorenzetti", "pos": "MED", "rating": 86},
+            {"name": "Eduardo Vargas", "pos": "DEL", "rating": 93},
+            {"name": "Gustavo Canales", "pos": "DEL", "rating": 87}
         ]
     },
     "2012": {
