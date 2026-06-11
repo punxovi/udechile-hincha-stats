@@ -2,6 +2,7 @@ import psycopg2
 from psycopg2.extras import DictCursor
 import json
 import datetime
+from contextlib import contextmanager
 from typing import List, Optional
 
 from application.ports.repositories import MatchRepository, AttendanceRepository, LeagueTableRepository
@@ -12,8 +13,20 @@ class PostgresDatabase:
     def __init__(self, db_url: str):
         self.db_url = db_url
 
+    @contextmanager
     def get_connection(self):
-        return psycopg2.connect(self.db_url)
+        """Context manager que abre, (auto)commitea y CIERRA la conexión al salir.
+        psycopg2's with-conn nativo solo hace commit/rollback pero nunca cierra —
+        sin este cierre explícito las conexiones se acumulan hasta agotar el pool de Neon."""
+        conn = psycopg2.connect(self.db_url)
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def initialize_schema(self):
         with self.get_connection() as conn:
