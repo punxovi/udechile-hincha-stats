@@ -75,7 +75,7 @@ function changeDashboardYear() {
 }
 
 // Actualizar contadores y estadios en la interfaz
-function updateDashboardData(snapshot, filterLabel) {
+function updateDashboardData(snapshot) {
     currentSnapshotData = snapshot;
 
     // 1. Encabezado de rendimiento
@@ -181,7 +181,7 @@ function drawChart(snapshot) {
     const centerTextPlugin = {
         id: 'centerText',
         afterDraw(chart) {
-            const { ctx, chartArea: { left, right, top, bottom, width, height } } = chart;
+            const { ctx, chartArea: { left, top, width, height } } = chart;
             ctx.save();
             
             ctx.font = "800 0.75rem 'Montserrat', sans-serif";
@@ -249,84 +249,171 @@ function drawChart(snapshot) {
 }
 
 // Exportar ficha del hincha brutalista como imagen PNG
+// ── Temas de la ficha exportable ─────────────────────────────────────────────
+const CARD_THEMES = {
+    dark: {
+        bg: '#0A1628',
+        border: '#FFFFFF',
+        text: '#FFFFFF',
+        secondary: '#CBD5E1',
+        accent: '#69C0FF',
+        accentRed: '#FC8181',
+        success: '#4ADE80',
+        divider: 'rgba(255,255,255,0.35)',
+        dividerLight: 'rgba(255,255,255,0.15)',
+    },
+    light: {
+        bg: '#E8EDFA',
+        border: '#002D72',
+        text: '#0F172A',
+        secondary: '#475569',
+        accent: '#0050B3',
+        accentRed: '#C6002A',
+        success: '#166534',
+        divider: 'rgba(0,45,114,0.35)',
+        dividerLight: 'rgba(0,45,114,0.15)',
+    }
+};
+
+let _exportDataUrl = null;
+let _exportCardData = null;
+
+function _buildShareCardHTML(t, data) {
+    const stadiumsHTML = data.stadiums.length === 0
+        ? `<div style="color:${t.secondary};font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.75rem;text-transform:uppercase;">SIN REGISTROS DE ESTADIOS</div>`
+        : data.stadiums.slice(0, 3).map((s, i) => `
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid ${t.dividerLight};padding-bottom:0.3rem;margin-bottom:0.3rem;font-size:0.75rem;font-weight:800;text-transform:uppercase;">
+                <span style="color:${t.text};">${i + 1}. ${s.stadium.name}</span>
+                <span style="color:${t.accentRed};font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;">${s.visit_count} VISITAS</span>
+            </div>`).join('');
+
+    const row = (label, value, color) => `
+        <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed ${t.divider};padding-bottom:0.2rem;">
+            <span style="font-weight:800;font-size:0.82rem;text-transform:uppercase;color:${t.text};">${label}</span>
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:1.75rem;line-height:1;color:${color};">${value}</span>
+        </div>`;
+
+    return `<div style="width:800px;height:500px;background:${t.bg};color:${t.text};border:6px double ${t.border};padding:2rem;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;font-family:'Montserrat',sans-serif;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${t.border};padding-bottom:1rem;">
+            <div>
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:3.5rem;margin:0;line-height:0.9;letter-spacing:2px;color:${t.text};">CAMPAÑA DE HINCHA</div>
+                <span style="font-size:0.85rem;font-weight:800;letter-spacing:2px;color:${t.accent};text-transform:uppercase;">U DE CHILE STATS</span>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:0.75rem;font-weight:800;color:${t.secondary};letter-spacing:1px;text-transform:uppercase;">HINCHA</div>
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;margin:0;color:${t.accentRed};letter-spacing:1px;">${data.hincha}</div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:2rem;flex:1;align-items:center;margin:1.2rem 0;">
+            <div style="display:flex;flex-direction:column;gap:0.7rem;">
+                ${row('FILTRO ACTIVO', data.filterTitle, t.accent)}
+                ${row('PARTIDOS EN EL TABLÓN', data.totalAttended, t.text)}
+                ${row('RENDIMIENTO', data.winPct + '%', t.accent)}
+                ${row('INVICTO', data.undefeatedPct + '%', t.success)}
+                ${row('RÉCORD (V · E · D)', data.record, t.text)}
+            </div>
+            <div style="display:flex;flex-direction:column;justify-content:space-between;border-left:2px solid ${t.border};padding-left:2rem;height:100%;">
+                <div>
+                    <span style="font-size:0.75rem;font-weight:800;letter-spacing:1px;color:${t.secondary};text-transform:uppercase;display:block;margin-bottom:0.8rem;">RECINTOS MÁS VISITADOS</span>
+                    ${stadiumsHTML}
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid ${t.divider};padding-top:0.8rem;margin-top:auto;">
+                    <span style="font-weight:800;font-size:0.85rem;text-transform:uppercase;color:${t.text};">GOLES VISTOS</span>
+                    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;line-height:1;">
+                        <span style="color:${t.accent};">${data.gf}</span>
+                        <span style="color:${t.text};"> F / </span>
+                        <span style="color:${t.text};">${data.gc}</span>
+                        <span style="color:${t.text};"> C</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;border-top:2px solid ${t.border};padding-top:0.8rem;font-size:0.7rem;font-weight:800;color:${t.secondary};">
+            <span>"DENTRO DE LA CANCHA O DESDE EL TABLÓN"</span>
+            <span style="letter-spacing:1px;color:${t.accentRed};text-transform:uppercase;">UDECHILE-STATS.VERCEL.APP</span>
+        </div>
+    </div>`;
+}
+
 function exportDashboardImage() {
     const btn = document.getElementById('btn-export-dashboard');
     if (!btn || !currentSnapshotData) return;
 
-    const originalText = btn.innerHTML;
+    const originalHTML = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" class="lucide-spin" style="width: 1.2rem; height: 1.2rem;"></i> GENERANDO...';
-    if (window.lucide) {
-        lucide.createIcons();
-    }
+    btn.innerHTML = '<i data-lucide="loader-2" class="lucide-spin" style="width:1.2rem;height:1.2rem;"></i> GENERANDO...';
+    if (window.lucide) lucide.createIcons();
 
-    // Rellenar datos en el template de compartir
-    document.getElementById('share-filter-title').textContent = currentFilterLabel;
-    document.getElementById('share-total-attended').textContent = currentSnapshotData.total_matches_attended;
-    document.getElementById('share-win-percentage').textContent = currentSnapshotData.win_percentage.toFixed(1) + '%';
-    document.getElementById('share-undefeated-percentage').textContent = currentSnapshotData.undefeated_percentage.toFixed(1) + '%';
-    document.getElementById('share-record').textContent = `${currentSnapshotData.wins} - ${currentSnapshotData.draws} - ${currentSnapshotData.losses}`;
-    document.getElementById('share-gf').textContent = currentSnapshotData.goals_scored_seen;
-    document.getElementById('share-gc').textContent = currentSnapshotData.goals_conceded_seen;
+    const isDark = document.documentElement.getAttribute('data-theme') === 'blue';
+    const t = isDark ? CARD_THEMES.dark : CARD_THEMES.light;
 
-    // Rellenar estadios en el template de compartir
-    const shareStadiumsContainer = document.getElementById('share-stadiums-container');
-    shareStadiumsContainer.innerHTML = '';
-    const stadiums = currentSnapshotData.most_visited_stadiums || [];
-    
-    if (stadiums.length === 0) {
-        shareStadiumsContainer.innerHTML = '<div style="color: #CBD5E1;">SIN REGISTROS DE ESTADIOS</div>';
-    } else {
-        stadiums.slice(0, 3).forEach((entry, idx) => {
-            const row = document.createElement('div');
-            row.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
-            row.style.paddingBottom = '0.3rem';
-            row.style.display = 'flex';
-            row.style.justifyContent = 'space-between';
-            row.innerHTML = `
-                <span>${idx + 1}. ${entry.stadium.name}</span>
-                <span style="color: #FC8181; font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1px;">${entry.visit_count} VISITAS</span>
-            `;
-            shareStadiumsContainer.appendChild(row);
-        });
-    }
+    _exportCardData = {
+        hincha: (window.hinchaName || 'HINCHA').toUpperCase(),
+        filterTitle: currentFilterLabel,
+        totalAttended: currentSnapshotData.total_matches_attended,
+        winPct: currentSnapshotData.win_percentage.toFixed(1),
+        undefeatedPct: currentSnapshotData.undefeated_percentage.toFixed(1),
+        record: `${currentSnapshotData.wins} · ${currentSnapshotData.draws} · ${currentSnapshotData.losses}`,
+        gf: currentSnapshotData.goals_scored_seen,
+        gc: currentSnapshotData.goals_conceded_seen,
+        stadiums: (currentSnapshotData.most_visited_stadiums || []).slice(0, 3),
+    };
 
-    // Renderizar con html2canvas
-    const shareCard = document.getElementById('share-card-template');
-    
-    html2canvas(shareCard, {
-        scale: 2, // Alta calidad
+    const container = document.getElementById('share-card-render');
+    container.innerHTML = _buildShareCardHTML(t, _exportCardData);
+
+    html2canvas(container.firstElementChild, {
+        scale: 2,
         useCORS: true,
-        backgroundColor: '#001B42'
+        backgroundColor: t.bg,
+        logging: false,
     }).then(canvas => {
-        const url = canvas.toDataURL('image/png');
-        const a = document.createElement('a');
-        a.href = url;
-        
-        const safeName = currentFilterLabel.toLowerCase().replace(/\s+/g, '_');
-        a.download = `campana_hincha_${safeName}.png`;
-        
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
+        _exportDataUrl = canvas.toDataURL('image/png');
         btn.disabled = false;
-        btn.innerHTML = originalText;
-        if (window.lucide) {
-            lucide.createIcons();
-        }
+        btn.innerHTML = originalHTML;
+        if (window.lucide) lucide.createIcons();
+        _openExportModal();
     }).catch(err => {
-        console.error(err);
+        console.error('html2canvas error:', err);
         btn.disabled = false;
-        btn.innerHTML = originalText;
-        if (window.lucide) {
-            lucide.createIcons();
-        }
+        btn.innerHTML = originalHTML;
+        if (window.lucide) lucide.createIcons();
     });
 }
 
+function _openExportModal() {
+    document.getElementById('export-preview-img').src = _exportDataUrl;
+    document.getElementById('export-tweet-hint').style.display = 'none';
+    document.getElementById('export-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+}
+
+function closeExportModal() {
+    document.getElementById('export-modal').classList.remove('open');
+}
+
+function downloadExportImage() {
+    if (!_exportDataUrl) return;
+    const a = document.createElement('a');
+    a.href = _exportDataUrl;
+    const safeName = (_exportCardData?.filterTitle || 'general').toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    a.download = `campana_hincha_${safeName}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+function tweetExportImage() {
+    if (!_exportDataUrl || !_exportCardData) return;
+    downloadExportImage();
+    document.getElementById('export-tweet-hint').style.display = 'block';
+    const text = `Mi campaña como hincha de la U 🔵 ${_exportCardData.totalAttended} partidos en el tablón · ${_exportCardData.winPct}% de rendimiento 💪 #UdeChile #HinchaStats`;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    window.open(twitterUrl, '_blank', 'width=560,height=450,noopener,noreferrer');
+}
+
 // Hook global llamado desde base.html al alternar el tema
-window.updateChartTheme = (theme) => {
+window.updateChartTheme = () => {
     // Retrasar levemente para permitir al DOM actualizar los estilos
     setTimeout(() => {
         if (currentSnapshotData) {

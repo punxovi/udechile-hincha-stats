@@ -128,18 +128,56 @@
 
     @media (max-width: 600px) {
         .dashboard-grid { gap: 1.5rem; }
-
-        /* Separar estadísticas de header en columna */
         .dashboard-header-stats {
             flex-direction: column !important;
             align-items: flex-start !important;
             gap: 0.3rem !important;
         }
+        .dotted-row { font-size: 0.8rem; }
+    }
 
-        /* Box score: números más compactos */
-        .dotted-row {
-            font-size: 0.8rem;
-        }
+    /* ── Modal de preview de ficha ───────────────────────────────────── */
+    #export-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(0, 0, 0, 0.78);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    #export-modal.open { display: flex; }
+    #export-modal-inner {
+        background: var(--card-bg);
+        border: 3px solid var(--text-primary);
+        box-shadow: 6px 6px 0 var(--text-primary);
+        max-width: min(860px, 95vw);
+        width: 100%;
+        padding: 1.5rem;
+    }
+    #export-preview-img {
+        max-width: 100%;
+        display: block;
+        margin: 0 auto;
+        border: 2px solid var(--card-border);
+    }
+    .export-modal-actions {
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 1.2rem;
+    }
+    #export-tweet-hint {
+        display: none;
+        text-align: center;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-top: 0.8rem;
     }
 </style>
 
@@ -348,70 +386,32 @@
     </div>
 </div>
 
-<!-- FICHA BRUTALISTA PARA COMPARTIR (OCULTA EN EL DOM) -->
-<div id="share-card-template" style="position: absolute; left: -9999px; top: -9999px; width: 800px; height: 500px; background: #001B42; color: #FFFFFF; border: 6px double #FFFFFF; padding: 2rem; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; font-family: 'Montserrat', sans-serif;">
-    <!-- Encabezado -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #FFFFFF; padding-bottom: 1rem;">
-        <div>
-            <h1 style="font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; margin: 0; line-height: 0.9; letter-spacing: 2px;">CAMPAÑA DE HINCHA</h1>
-            <span style="font-size: 0.85rem; font-weight: 800; letter-spacing: 2px; color: #69C0FF; text-transform: uppercase;">U DE CHILE STATS</span>
+<!-- Contenedor fuera de pantalla para renderizar la ficha dinámica -->
+<div id="share-card-render" style="position: absolute; left: -9999px; top: 0; width: 800px; pointer-events: none;" aria-hidden="true"></div>
+
+<!-- Modal de preview de ficha exportada -->
+<div id="export-modal" onclick="if(event.target===this)closeExportModal()">
+    <div id="export-modal-inner">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--text-primary); padding-bottom: 0.8rem; margin-bottom: 1.2rem;">
+            <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; margin: 0; letter-spacing: 1px; color: var(--text-primary);">TU FICHA</h3>
+            <button onclick="closeExportModal()" style="background: none; border: none; cursor: pointer; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; padding: 0.3rem;">
+                <i data-lucide="x" style="width: 1.2rem; height: 1.2rem;"></i> CERRAR
+            </button>
         </div>
-        <div style="text-align: right;">
-            <div style="font-size: 0.75rem; font-weight: 800; color: #E2E8F0; letter-spacing: 1px; text-transform: uppercase;">HINCHA</div>
-            <div id="share-hincha-name" style="font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; margin: 0; color: #FC8181; letter-spacing: 1px;">
-                {% if current_user and current_user.id == user_id %}{{ current_user.name }}{% else %}Vicente Bg{% endif %}
-            </div>
+        <div style="overflow-x: auto;">
+            <img id="export-preview-img" alt="Ficha de campaña">
         </div>
-    </div>
-    
-    <!-- Contenido Principal -->
-    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; margin: 1.5rem 0; flex: 1; align-items: center;">
-        <!-- Lado izquierdo: Métricas globales -->
-        <div style="display: flex; flex-direction: column; gap: 0.8rem; justify-content: center;">
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.4); padding-bottom: 0.2rem;">
-                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">FILTRO ACTIVO</span>
-                <span id="share-filter-title" style="font-weight: 800; font-size: 0.85rem; color: #69C0FF; text-transform: uppercase; letter-spacing: 1px;">RENDIMIENTO GENERAL</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.4); padding-bottom: 0.2rem;">
-                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">PARTIDOS EN EL TABLÓN</span>
-                <span id="share-total-attended" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1;">0</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.4); padding-bottom: 0.2rem;">
-                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">RENDIMIENTO</span>
-                <span id="share-win-percentage" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1; color: #69C0FF;">0.0%</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.4); padding-bottom: 0.2rem;">
-                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">INVICTO</span>
-                <span id="share-undefeated-percentage" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1; color: #276749;">0.0%</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.4); padding-bottom: 0.2rem;">
-                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">RECORD (V - E - D)</span>
-                <span id="share-record" style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1;">0 - 0 - 0</span>
-            </div>
+        <div class="export-modal-actions">
+            <button onclick="downloadExportImage()" class="tab-btn" style="display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="download" style="width: 1.1rem; height: 1.1rem;"></i> DESCARGAR PNG
+            </button>
+            <button onclick="tweetExportImage()" class="tab-btn" style="display: flex; align-items: center; gap: 0.5rem; background: var(--text-primary); color: var(--bg-color); box-shadow: none;">
+                <i data-lucide="twitter" style="width: 1.1rem; height: 1.1rem;"></i> COMPARTIR EN X
+            </button>
         </div>
-        
-        <!-- Lado derecho: Estadios y goles -->
-        <div style="display: flex; flex-direction: column; justify-content: space-between; border-left: 2px solid #FFFFFF; padding-left: 2rem; height: 100%;">
-            <div>
-                <span style="font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; color: #E2E8F0; text-transform: uppercase; display: block; margin-bottom: 0.8rem;">RECINTOS MÁS VISITADOS</span>
-                <div id="share-stadiums-container" style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">
-                    <!-- Rellenado por JS -->
-                </div>
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.4); padding-top: 0.8rem; margin-top: auto;">
-                <span style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">GOLES VISTOS</span>
-                <span style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1;">
-                    <span id="share-gf" style="color: #69C0FF;">0</span> F / <span id="share-gc">0</span> C
-                </span>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Pie de página -->
-    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #FFFFFF; padding-top: 0.8rem; font-size: 0.7rem; font-weight: 800; color: #CBD5E1;">
-        <span>"DENTRO DE LA CANCHA O DESDE EL TABLÓN"</span>
-        <span style="letter-spacing: 1px; color: #FC8181; text-transform: uppercase;">UDECHILE-STATS.LOCAL</span>
+        <p id="export-tweet-hint">
+            ↑ La imagen se descargó — adjúntala al tweet que se abrió.
+        </p>
     </div>
 </div>
 
@@ -421,6 +421,7 @@
 </script>
 <script>
     window.dashboardData = JSON.parse(document.getElementById('dashboard-data').textContent);
+    window.hinchaName = "{{ (current_user.name if current_user and current_user.id == user_id else 'HINCHA') | upper }}";
 </script>
 <script src="{{ url_for('static', path='/dashboard.js') }}"></script>
 {% endblock %}
