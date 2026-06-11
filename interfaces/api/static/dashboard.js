@@ -328,9 +328,8 @@ function _buildShareCardHTML(t, data) {
                 </div>
             </div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;border-top:2px solid ${t.border};padding-top:0.8rem;font-size:0.7rem;font-weight:800;color:${t.secondary};">
+        <div style="display:flex;justify-content:center;align-items:center;border-top:2px solid ${t.border};padding-top:0.8rem;font-size:0.7rem;font-weight:800;color:${t.secondary};">
             <span>"DENTRO DE LA CANCHA O DESDE EL TABLÓN"</span>
-            <span style="letter-spacing:1px;color:${t.accentRed};text-transform:uppercase;">UDECHILE-STATS.VERCEL.APP</span>
         </div>
     </div>`;
 }
