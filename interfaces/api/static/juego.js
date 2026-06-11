@@ -1112,21 +1112,49 @@ function endGame(isWinner, message) {
     if (campaignList) {
         campaignList.innerHTML = '';
         if (matchHistory.length === 0) {
-            campaignList.innerHTML = `<div style="text-align: center; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; padding: 1rem 0;">Sin partidos registrados.</div>`;
+            campaignList.innerHTML = `<p style="text-align:center;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:800;color:var(--text-secondary);text-transform:uppercase;padding:1rem 0;">Sin partidos registrados.</p>`;
         } else {
             matchHistory.forEach(match => {
-                let cleanAwayName = match.awayName.replace(' (CAMPEÓN)', '').replace(' (BALLET AZUL)', '').replace(' (MATADOR SALAS)', '').replace(' (RACHA INVICTO)', '');
-                let penSpan = match.penalties ? `<span style="font-size: 0.65rem; color: var(--text-tertiary); font-weight: 800;"> (PEN: ${match.penalties})</span>` : '';
-                let isUserWinner = match.homeScore > match.awayScore || (match.penalties && parseInt(match.penalties.split(' - ')[0]) > parseInt(match.penalties.split(' - ')[1]));
-                let resultColor = isUserWinner ? '#15803d' : '#ef4444';
-                
+                const cleanAwayName = match.awayName.replace(/\s*\([^)]*\)/g, '').trim();
+
+                let isWin, isDraw;
+                if (match.penalties) {
+                    const [hp, ap] = match.penalties.split(' - ').map(Number);
+                    isWin  = hp > ap;
+                    isDraw = false;
+                } else {
+                    isWin  = match.homeScore > match.awayScore;
+                    isDraw = match.homeScore === match.awayScore;
+                }
+
+                const resultLabel = match.penalties
+                    ? (isWin ? 'VICTORIA EN PENALES' : 'ELIMINADO EN PENALES')
+                    : isWin  ? 'VICTORIA'
+                    : isDraw ? 'EMPATE'
+                    :          'DERROTA';
+
+                const accentColor = isWin  ? '#15803d'
+                                  : isDraw ? '#b45309'
+                                  :          '#dc2626';
+
+                const penLine = match.penalties
+                    ? `<div style="text-align:center;font-family:'Montserrat',sans-serif;font-size:0.75rem;font-weight:800;color:#b45309;text-transform:uppercase;margin-top:0.35rem;letter-spacing:0.5px;">
+                           Penales: ${match.penalties}
+                       </div>`
+                    : '';
+
                 campaignList.innerHTML += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--text-primary); padding-bottom: 0.4rem; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 800;">
-                        <span style="color: var(--text-secondary); text-transform: uppercase; min-width: 80px;">${match.phase}</span>
-                        <span style="color: var(--text-primary); text-transform: uppercase; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 200px;">vs ${cleanAwayName}</span>
-                        <span style="color: ${resultColor}; font-size: 0.95rem;">
-                            ${match.homeScore} - ${match.awayScore} ${penSpan}
-                        </span>
+                    <div style="border-left:4px solid ${accentColor};padding:0.75rem 1rem;background:var(--card-bg);margin-bottom:0.5rem;font-family:'Montserrat',sans-serif;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.45rem;">
+                            <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary);">${match.phase}</span>
+                            <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${accentColor};">${resultLabel}</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:0.5rem;">
+                            <span style="font-weight:800;font-size:0.9rem;color:var(--udechile-blue);text-transform:uppercase;">U de Chile</span>
+                            <span style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:2px;color:${accentColor};white-space:nowrap;">${match.homeScore} - ${match.awayScore}</span>
+                            <span style="font-weight:800;font-size:0.9rem;color:var(--text-primary);text-transform:uppercase;text-align:right;">${cleanAwayName}</span>
+                        </div>
+                        ${penLine}
                     </div>
                 `;
             });
