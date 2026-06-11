@@ -7,7 +7,9 @@
   --udechile-blue-light: #1A4B96;  
   
   --udechile-red: #C6002A; /* Rojo Oficial */
-  
+  --udechile-red-glow: rgba(198, 0, 42, 0.25);
+  --udechile-blue-glow: rgba(0, 45, 114, 0.25);
+
   --bg-color: #F8F9FA; /* Blanco/Gris muy suave */
   --bg-gradient: none;
   
@@ -37,6 +39,8 @@
   --udechile-blue-light: #69C0FF;
   
   --udechile-red: #FC8181;
+  --udechile-red-glow: rgba(252, 129, 129, 0.3);
+  --udechile-blue-glow: rgba(64, 169, 255, 0.3);
 
   --bg-color: #001B42; /* Azul Profundo Oficial */
   --bg-gradient: none;
@@ -219,6 +223,7 @@ h1, h2, h3, h4, h5, h6, .nav-brand, .metric-value, .score, .auth-title, .u-giant
   margin-bottom: 0.6rem;
   background: linear-gradient(90deg, var(--text-primary), var(--udechile-blue));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -241,12 +246,14 @@ h1, h2, h3, h4, h5, h6, .nav-brand, .metric-value, .score, .auth-title, .u-giant
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: var(--card-bg);
+  border: 2px solid var(--text-primary);
+  transition: var(--transition-smooth);
 }
 
 .match-card:hover {
   transform: translateY(-2px);
   box-shadow: 6px 6px 0px var(--text-primary);
-  border-color: var(--text-primary);
 }
 
 .match-competition {

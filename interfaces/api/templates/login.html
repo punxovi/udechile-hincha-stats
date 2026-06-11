@@ -17,8 +17,6 @@
             document.documentElement.setAttribute('data-theme', savedTheme);
         }
     </script>
-    <!-- Supabase JS CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             display: flex;
@@ -74,6 +72,7 @@
             margin-bottom: 0.5rem;
             background: linear-gradient(90deg, var(--text-primary), var(--udechile-blue));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
         }
@@ -381,10 +380,15 @@
             if (response.ok) {
                 window.location.href = '/';
             } else {
-                showAlert('error', 'Credenciales incorrectas o error en el servidor.');
+                let errorMsg = 'Credenciales incorrectas o error en el servidor.';
+                try {
+                    const data = await response.json();
+                    if (data.message) errorMsg = data.message;
+                } catch (_) {}
+                showAlert('error', errorMsg);
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = activeMode === 'login' 
-                    ? '<i data-lucide="arrow-right-circle" style="width: 1.4rem; height: 1.4rem;"></i> INGRESAR' 
+                submitBtn.innerHTML = activeMode === 'login'
+                    ? '<i data-lucide="arrow-right-circle" style="width: 1.4rem; height: 1.4rem;"></i> INGRESAR'
                     : '<i data-lucide="user-check" style="width: 1.4rem; height: 1.4rem;"></i> CREAR CUENTA';
                 lucide.createIcons();
             }
@@ -392,8 +396,8 @@
             console.error(err);
             showAlert('error', 'Ocurrió un error inesperado al conectar con el servidor.');
             submitBtn.disabled = false;
-            submitBtn.innerHTML = activeMode === 'login' 
-                ? '<i data-lucide="arrow-right-circle" style="width: 1.4rem; height: 1.4rem;"></i> INGRESAR' 
+            submitBtn.innerHTML = activeMode === 'login'
+                ? '<i data-lucide="arrow-right-circle" style="width: 1.4rem; height: 1.4rem;"></i> INGRESAR'
                 : '<i data-lucide="user-check" style="width: 1.4rem; height: 1.4rem;"></i> CREAR CUENTA';
             lucide.createIcons();
         }
