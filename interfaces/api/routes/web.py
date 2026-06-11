@@ -126,8 +126,8 @@ async def index(
     # Ordenar por fecha (priorizando fecha)
     matches.sort(key=lambda m: m.date, reverse=(sort_date == "desc"))
     
-    # Genera la lista de años disponibles (de 2025 a 2011 de mayor a menor)
-    years = list(range(2025, 2010, -1))
+    # Genera la lista de años disponibles (de 2025 a 2005 de mayor a menor)
+    years = list(range(2025, 1996, -1))
     
     # Cargar tablas de posiciones para la temporada consultada
     league_tables = table_repo.get_league_tables_by_season(str(selected_year))
