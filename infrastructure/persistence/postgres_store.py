@@ -56,6 +56,16 @@ class PostgresDatabase:
                     )
                 """)
                 
+                # Tabla de usuarios
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        id TEXT PRIMARY KEY,
+                        email TEXT UNIQUE NOT NULL,
+                        password_hash TEXT NOT NULL,
+                        name TEXT NOT NULL
+                    )
+                """)
+                
                 # Tabla de Dream Teams (Juego)
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS dream_teams (
@@ -284,6 +294,7 @@ class PostgresUserRepository:
                     conn.commit()
                     return True
                 except psycopg2.IntegrityError:
+                    conn.rollback()
                     return False
 
     def get_user_by_email(self, email: str) -> Optional[dict]:
