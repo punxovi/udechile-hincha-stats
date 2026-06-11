@@ -50,14 +50,13 @@
             gap: 0.5rem;
         }
 
-        .auth-logo .u-giant {
-            font-size: 4rem;
-            font-weight: 900;
-            color: #d90429 !important; /* Rojo Pasión siempre */
-            text-shadow: 0 0 15px rgba(217, 4, 41, 0.4);
-            display: inline-block;
+        .auth-logo .logo-img {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            display: block;
             animation: pulseLogoLogin 3s infinite ease-in-out;
-            line-height: 1;
+            filter: drop-shadow(0 0 12px rgba(217, 4, 41, 0.35));
         }
 
         @keyframes pulseLogoLogin {
@@ -242,7 +241,7 @@
 
 <div class="auth-container glass">
     <div class="auth-logo">
-        <span class="u-giant">U</span>
+        <img src="{{ url_for('static', path='/logo.png') }}" class="logo-img" alt="Club Universidad de Chile">
     </div>
     
     <h1 class="auth-title">U de Chile Stats</h1>
