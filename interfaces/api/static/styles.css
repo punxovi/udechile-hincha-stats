@@ -734,34 +734,99 @@ canvas {
     gap: 1rem !important;
   }
 
-  .match-card {
-    padding: 1.2rem !important;
-    border-radius: 16px !important;
-  }
-
   .match-competition {
-    margin-bottom: 0.8rem !important;
+    margin-bottom: 0.4rem !important;
     font-size: 0.8rem !important;
   }
 
   .match-teams {
     font-size: 0.95rem !important;
-    margin-bottom: 1rem !important;
+    margin-bottom: 0 !important;
   }
 
   .team {
     font-size: 0.9rem !important;
   }
 
-  .score {
-    min-width: 70px !important;
-    padding: 0.35rem 0.6rem !important;
-    font-size: 0.95rem !important;
-    margin: 0 0.3rem !important;
-  }
-
   /* Ocultar nombre del usuario en teléfonos súper pequeños para ganar espacio */
   .nav-links span {
     display: none !important;
+  }
+}
+
+/* =====================================================
+   RESPONSIVO MÓVIL (≤ 600px)
+   Cubre iPhones, Galaxy y la mayoría de smartphones
+   ===================================================== */
+@media (max-width: 600px) {
+  /* Navbar */
+  .navbar {
+    margin-bottom: 1rem !important;
+  }
+
+  /* ---- Match Cards: layout en columna ---- */
+  .match-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem;
+    padding: 1rem !important;
+  }
+
+  /* El primer div (etapa/torneo) no debe forzar 120px de altura en columna */
+  .match-card > div:first-child {
+    flex: none !important;
+    width: auto !important;
+  }
+
+  /* Área de equipos ocupa el ancho completo */
+  .match-teams {
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Nombre del equipo más compacto */
+  .team-name {
+    font-size: 1.2rem !important;
+  }
+
+  /* Fila inferior: score a la izquierda, botón asistencia a la derecha */
+  .match-card > div:last-child {
+    justify-content: space-between !important;
+    gap: 0 !important;
+  }
+
+  /* Score: tamaño legible, sin padding/margin extra del breakpoint 480px */
+  .score {
+    font-size: 1.6rem !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    letter-spacing: 1px !important;
+  }
+
+  /* ---- Panel de filtros: un filtro por fila ---- */
+  .filter-panel form {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  .filter-panel form > div {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  /* Anular max-width inline en el select de Torneo */
+  .filter-panel form > div select {
+    flex: 1;
+    max-width: none !important;
+    min-width: 0;
+  }
+
+  /* ---- Tabla de posiciones en modal: fuente más pequeña ---- */
+  .modal-content th,
+  .modal-content td {
+    padding: 0.4rem 0.3rem !important;
+    font-size: 0.7rem !important;
   }
 }

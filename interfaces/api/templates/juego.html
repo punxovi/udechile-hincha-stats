@@ -762,6 +762,95 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
+
+    /* =====================================================
+       RESPONSIVE MÓVIL
+       ===================================================== */
+    @media (max-width: 768px) {
+        .brutal-card {
+            padding: 1.2rem;
+            box-shadow: 4px 4px 0px var(--text-primary);
+        }
+
+        .brutal-title {
+            font-size: 1.8rem;
+        }
+
+        /* Modo selección: cada card ocupa el ancho completo */
+        .mode-card {
+            min-width: 100%;
+        }
+
+        /* Draft: columna única (ya existe a 800px, reforzamos a 768px) */
+        .draft-layout {
+            grid-template-columns: 1fr !important;
+        }
+        .col-right {
+            grid-column: span 1 !important;
+        }
+
+        /* Campo de fútbol más compacto */
+        .soccer-field {
+            max-width: 100%;
+        }
+
+        /* Lista de jugadores más alta en móvil para compensar pantalla vertical */
+        .player-select-list {
+            max-height: 260px;
+        }
+
+        /* Torneo: columna única */
+        .tournament-grid {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Tarjetas del muro de honor */
+        .muro-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 600px) {
+        /* Botones de formación: 2 por fila en lugar de 4 */
+        .formation-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+        .formation-btn {
+            font-size: 1rem;
+            padding: 0.7rem;
+        }
+
+        /* Spin box y controles de ruleta */
+        .spin-box {
+            padding: 0.8rem;
+        }
+
+        .spin-display {
+            font-size: 1.4rem;
+        }
+
+        /* Caja de controles del torneo */
+        .match-header-card {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .match-score-display {
+            font-size: 2rem;
+        }
+
+        /* Tanda de penales */
+        #sim-penalties-card {
+            padding: 1rem !important;
+        }
+
+        /* Panel de eventos */
+        .events-panel-card {
+            max-height: 180px;
+        }
+    }
 </style>
 
 <div class="game-container">

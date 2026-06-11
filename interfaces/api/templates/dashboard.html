@@ -104,6 +104,43 @@
             padding-top: 2rem;
         }
     }
+
+    @media (max-width: 768px) {
+        /* Tabs: más compactos para que quepan mejor al hacer wrap */
+        .tab-btn {
+            padding: 0.5rem 0.9rem;
+            font-size: 0.8rem;
+        }
+        /* Botón exportar: sin margin-left:auto para que no quede aislado */
+        #btn-export-dashboard {
+            margin-left: 0 !important;
+            width: 100%;
+            justify-content: center;
+        }
+        .select-tab-container {
+            flex: 1 1 auto;
+        }
+        /* Clásicos: columna única en tablet */
+        #classics-breakdown-section > div {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .dashboard-grid { gap: 1.5rem; }
+
+        /* Separar estadísticas de header en columna */
+        .dashboard-header-stats {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.3rem !important;
+        }
+
+        /* Box score: números más compactos */
+        .dotted-row {
+            font-size: 0.8rem;
+        }
+    }
 </style>
 
 <!-- Librerías de exportación e iconos -->
@@ -115,12 +152,12 @@
         <span style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 800; letter-spacing: 2px; color: var(--text-secondary); text-transform: uppercase;">
             HINCHA · {% if current_user and current_user.id == user_id %}{{ current_user.name }}{% else %}Anónimo{% endif %}
         </span>
-        <h1 style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 8vw, 7rem); line-height: 0.85; letter-spacing: 2px; color: var(--text-primary); margin: 0;">
+        <h1 style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem, 10vw, 7rem); line-height: 0.85; letter-spacing: 2px; color: var(--text-primary); margin: 0;">
             MI CAMPAÑA
         </h1>
     </div>
     
-    <div style="display: flex; gap: 1.5rem; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-primary); margin-bottom: 0.5rem;">
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-primary); margin-bottom: 0.5rem;">
         <span id="header-win-percentage">RENDIMIENTO · {{ "%.1f"|format(snapshot.win_percentage) }}%</span>
         <span id="header-undefeated-percentage">INVICTO · {{ "%.1f"|format(snapshot.undefeated_percentage) }}%</span>
     </div>
