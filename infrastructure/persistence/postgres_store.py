@@ -254,3 +254,29 @@ class PostgresTableRepository(LeagueTableRepository):
                     entries_json
                 ))
             conn.commit()
+
+class PostgresUserRepository:
+    def __init__(self, database: PostgresDatabase):
+        self._db = database
+
+    def create_user(self, user_id: str, email: str, password_hash: str, name: str) -> bool:
+        with self._db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                try:
+                    cursor.execute("""
+                        INSERT INTO users (id, email, password_hash, name)
+                        VALUES (%s, %s, %s, %s)
+                    """, (user_id, email, password_hash, name))
+                    conn.commit()
+                    return True
+                except psycopg2.IntegrityError:
+                    return False
+
+    def get_user_by_email(self, email: str) -> Optional[dict]:
+        with self._db.get_connection() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute("SELECT id, email, password_hash, name FROM users WHERE email = %s", (email,))
+                row = cursor.fetchone()
+                if row:
+                    return dict(row)
+                return None

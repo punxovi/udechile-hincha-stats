@@ -63,25 +63,34 @@ async def login_page(request: Request):
 
 @router.post("/api/auth/login")
 async def local_login(payload: LoginPayload):
-    """Autenticación local mockeada sin Supabase."""
     import hashlib
+    from interfaces.api.app import db_instance
+    from infrastructure.persistence.postgres_store import PostgresDatabase, PostgresUserRepository
     
     email_lower = payload.email.lower()
-    prefix = payload.email.split("@")[0].lower()
+    password_hash = hashlib.sha256(payload.password.encode()).hexdigest()
     
-    # Manejo especial para cuentas de pruebas históricas y del usuario principal
-    if email_lower == "hincha_1" or prefix == "hincha_1":
-        user_id = "hincha_1"
-        display_name = payload.name or "Hincha Uno"
-    elif prefix == "bustamantevicente12" or email_lower == "vicente_bg" or prefix == "vicente_bg":
-        # Proteger el perfil principal con contraseña
-        admin_pass = os.getenv("ADMIN_PASSWORD", "UdeChile1927")
-        if payload.password != admin_pass:
-            return JSONResponse(status_code=401, content={"status": "error", "message": "Contraseña incorrecta para el perfil de administrador."})
-        user_id = "Vicente_Bg"
-        display_name = payload.name or "Vicente Bg"
+    # Si tenemos base de datos Postgres, usamos la tabla real
+    if isinstance(db_instance, PostgresDatabase):
+        user_repo = PostgresUserRepository(db_instance)
+        
+        # Flujo de Registro (payload.name viene lleno)
+        if payload.name:
+            user_id = hashlib.md5(email_lower.encode()).hexdigest()
+            success = user_repo.create_user(user_id, email_lower, password_hash, payload.name)
+            if not success:
+                return JSONResponse(status_code=400, content={"status": "error", "message": "El correo ya está registrado."})
+            display_name = payload.name
+        else:
+            # Flujo de Login
+            user_data = user_repo.get_user_by_email(email_lower)
+            if not user_data or user_data["password_hash"] != password_hash:
+                return JSONResponse(status_code=401, content={"status": "error", "message": "Credenciales incorrectas."})
+            user_id = user_data["id"]
+            display_name = user_data["name"]
     else:
-        user_id = hashlib.md5(payload.email.encode()).hexdigest()
+        # Fallback para SQLite local
+        user_id = hashlib.md5(email_lower.encode()).hexdigest()
         display_name = payload.name or payload.email.split('@')[0]
     
     response = JSONResponse(content={"status": "success"})
