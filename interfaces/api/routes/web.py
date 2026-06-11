@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+import bcrypt
 from typing import Optional
 from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
@@ -12,7 +13,12 @@ from application.use_cases.dashboard_use_case import GenerateFanDashboardUseCase
 from infrastructure.game.game_data import PLANTELES_HISTORICOS
 
 from fastapi.responses import RedirectResponse, JSONResponse
+import pydantic
 from pydantic import BaseModel
+
+# En producción (SECURE_COOKIES=true) las cookies llevan el flag Secure
+# para que el browser no las envíe por HTTP plano.
+_SECURE_COOKIES = os.getenv("SECURE_COOKIES", "false").lower() == "true"
 
 router = APIRouter()
 
@@ -39,13 +45,12 @@ def get_league_table_repo():
     return SqliteLeagueTableRepository(db_instance)
 
 def get_current_user(request: Request) -> Optional[dict]:
-    """Helper para obtener el usuario autenticado desde las cookies de sesión."""
+    """Devuelve el usuario autenticado desde las cookies de sesión, o None."""
     user_id = request.cookies.get("session_user_id")
-    user_email = request.cookies.get("session_user_email")
-    user_name = request.cookies.get("session_user_name")
     if not user_id:
         return None
-    return {"id": user_id, "email": user_email, "name": user_name or user_email}
+    user_name = request.cookies.get("session_user_name", "")
+    return {"id": user_id, "name": user_name}
 
 class LoginPayload(BaseModel):
     email: str
@@ -63,42 +68,54 @@ async def login_page(request: Request):
 
 @router.post("/api/auth/login")
 async def local_login(payload: LoginPayload):
-    import hashlib
+    import uuid
     from interfaces.api.app import db_instance
     from infrastructure.persistence.postgres_store import PostgresDatabase, PostgresUserRepository
-    
-    email_lower = payload.email.lower()
-    password_hash = hashlib.sha256(payload.password.encode()).hexdigest()
-    
-    # Si tenemos base de datos Postgres, usamos la tabla real
+
+    email_lower = payload.email.lower().strip()
+
     if isinstance(db_instance, PostgresDatabase):
         user_repo = PostgresUserRepository(db_instance)
-        
-        # Flujo de Registro (payload.name viene lleno)
+
         if payload.name:
-            user_id = hashlib.md5(email_lower.encode()).hexdigest()
-            success = user_repo.create_user(user_id, email_lower, password_hash, payload.name)
+            # ── Registro ──────────────────────────────────────────────────────
+            # bcrypt con factor de coste 12: ~250ms por hash, impráctible de brute-forcear.
+            # Cada hash incluye una salt única aleatoria, por lo que dos usuarios con la
+            # misma contraseña producen hashes distintos.
+            pw_hash = bcrypt.hashpw(payload.password.encode(), bcrypt.gensalt(rounds=12)).decode()
+            user_id = str(uuid.uuid4())
+            success = user_repo.create_user(user_id, email_lower, pw_hash, payload.name)
             if not success:
                 return JSONResponse(status_code=400, content={"status": "error", "message": "El correo ya está registrado."})
             display_name = payload.name
         else:
-            # Flujo de Login
+            # ── Login ─────────────────────────────────────────────────────────
             user_data = user_repo.get_user_by_email(email_lower)
-            if not user_data or user_data["password_hash"] != password_hash:
+            if not user_data:
+                return JSONResponse(status_code=401, content={"status": "error", "message": "Credenciales incorrectas."})
+            stored_hash = user_data["password_hash"]
+            # Soporte de migración: si el hash existente es SHA-256 (64 hex chars),
+            # se verifica con SHA-256 y se migra a bcrypt de forma transparente.
+            import hashlib
+            if stored_hash.startswith("$2"):
+                valid = bcrypt.checkpw(payload.password.encode(), stored_hash.encode())
+            else:
+                valid = (stored_hash == hashlib.sha256(payload.password.encode()).hexdigest())
+                if valid:
+                    new_hash = bcrypt.hashpw(payload.password.encode(), bcrypt.gensalt(rounds=12)).decode()
+                    user_repo.update_password_hash(user_data["id"], new_hash)
+            if not valid:
                 return JSONResponse(status_code=401, content={"status": "error", "message": "Credenciales incorrectas."})
             user_id = user_data["id"]
             display_name = user_data["name"]
     else:
-        # Fallback para SQLite local
-        user_id = hashlib.md5(email_lower.encode()).hexdigest()
-        display_name = payload.name or payload.email.split('@')[0]
-    
+        # Fallback SQLite local — solo para desarrollo, no expuesto en producción
+        user_id = str(uuid.uuid4())
+        display_name = payload.name or payload.email.split("@")[0]
+
     response = JSONResponse(content={"status": "success"})
-    # Configurar cookies httpOnly
-    response.set_cookie("session_user_id", user_id, max_age=86400 * 30, httponly=True, samesite="lax")
-    response.set_cookie("session_user_email", payload.email, max_age=86400 * 30, httponly=True, samesite="lax")
-    response.set_cookie("session_user_name", display_name, max_age=86400 * 30, httponly=True, samesite="lax")
-    response.set_cookie("session_access_token", "local_token", max_age=86400 * 30, httponly=True, samesite="lax")
+    response.set_cookie("session_user_id", user_id, max_age=86400 * 30, httponly=True, samesite="lax", secure=_SECURE_COOKIES)
+    response.set_cookie("session_user_name", display_name, max_age=86400 * 30, httponly=True, samesite="lax", secure=_SECURE_COOKIES)
     return response
 
 @router.get("/logout")
@@ -106,8 +123,9 @@ async def logout():
     """Cierra la sesión limpiando las cookies y redirigiendo al login."""
     response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie("session_user_id")
-    response.delete_cookie("session_user_email")
     response.delete_cookie("session_user_name")
+    # Limpiar cookies legacy en caso de que existan de sesiones anteriores
+    response.delete_cookie("session_user_email")
     response.delete_cookie("session_access_token")
     return response
 
@@ -173,12 +191,17 @@ async def index(
 
 @router.get("/dashboard/{user_id}")
 async def dashboard(
-    request: Request, 
-    user_id: str, 
-    match_repo = Depends(get_match_repo), 
+    request: Request,
+    user_id: str,
+    match_repo = Depends(get_match_repo),
     attendance_repo = Depends(get_attendance_repo)
 ):
     current_user = get_current_user(request)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=303)
+    # Un usuario solo puede ver su propio dashboard.
+    if current_user["id"] != user_id:
+        return RedirectResponse(url=f"/dashboard/{current_user['id']}", status_code=303)
     
     use_case = GenerateFanDashboardUseCase(match_repo, attendance_repo)
     enriched_data = use_case.execute_enriched(user_id)
@@ -237,8 +260,8 @@ async def unmark_attendance(
     return {"status": "ok", "match_id": match_id}
 
 class SaveDreamTeamPayload(BaseModel):
-    team_name: str
-    formation: str
+    team_name: str = pydantic.Field(..., max_length=80)
+    formation: str = pydantic.Field(..., max_length=20)
     rating: float
     players: list
     campaign: Optional[list] = None

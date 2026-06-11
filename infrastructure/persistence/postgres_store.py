@@ -305,3 +305,13 @@ class PostgresUserRepository:
                 if row:
                     return dict(row)
                 return None
+
+    def update_password_hash(self, user_id: str, new_hash: str) -> None:
+        """Migra un hash legacy (SHA-256) a bcrypt de forma transparente en el primer login."""
+        with self._db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE users SET password_hash = %s WHERE id = %s",
+                    (new_hash, user_id)
+                )
+            conn.commit()
