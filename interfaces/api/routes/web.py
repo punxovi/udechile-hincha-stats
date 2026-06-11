@@ -6,6 +6,7 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 
 from infrastructure.persistence.sqlite_store import SqliteDatabase, SqliteMatchRepository, SqliteAttendanceRepository, SqliteLeagueTableRepository
+from infrastructure.persistence.postgres_store import PostgresDatabase, PostgresMatchRepository, PostgresAttendanceRepository, PostgresTableRepository
 from application.use_cases.match_use_cases import GetHistoricalMatchesUseCase, MarkAttendanceUseCase, UnmarkAttendanceUseCase
 from application.use_cases.dashboard_use_case import GenerateFanDashboardUseCase
 from infrastructure.game.game_data import PLANTELES_HISTORICOS
@@ -19,17 +20,23 @@ router = APIRouter()
 template_dir = os.path.join(os.path.dirname(__file__), "..", "templates")
 templates = Jinja2Templates(directory=template_dir)
 
-# Singleton-like database access para FastAPI Depends
-db = SqliteDatabase("udechile_stats.db")
-
 def get_match_repo():
-    return SqliteMatchRepository(db)
+    from interfaces.api.app import db_instance
+    if isinstance(db_instance, PostgresDatabase):
+        return PostgresMatchRepository(db_instance)
+    return SqliteMatchRepository(db_instance)
 
 def get_attendance_repo():
-    return SqliteAttendanceRepository(db)
+    from interfaces.api.app import db_instance
+    if isinstance(db_instance, PostgresDatabase):
+        return PostgresAttendanceRepository(db_instance)
+    return SqliteAttendanceRepository(db_instance)
 
 def get_league_table_repo():
-    return SqliteLeagueTableRepository(db)
+    from interfaces.api.app import db_instance
+    if isinstance(db_instance, PostgresDatabase):
+        return PostgresTableRepository(db_instance)
+    return SqliteLeagueTableRepository(db_instance)
 
 def get_current_user(request: Request) -> Optional[dict]:
     """Helper para obtener el usuario autenticado desde las cookies de sesión."""
