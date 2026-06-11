@@ -53,10 +53,15 @@ function switchTab(tabType) {
 
 // Escuchar cambios en el selector de año
 function changeDashboardYear() {
-    if (currentFilterType !== 'year') return;
+    // Si el usuario tocó el <select> directamente sin pasar por switchTab('year'),
+    // activamos la pestaña de año primero (switchTab la llama de vuelta).
+    if (currentFilterType !== 'year') {
+        switchTab('year');
+        return;
+    }
     const yearSelect = document.getElementById('dashboard-year-select');
     if (!yearSelect) return;
-    
+
     const selectedYear = yearSelect.value;
     const yearData = window.dashboardData.by_year[selectedYear] || {
         total_matches_attended: 0,
@@ -69,9 +74,9 @@ function changeDashboardYear() {
         goals_scored_seen: 0,
         goals_conceded_seen: 0
     };
-    
+
     currentFilterLabel = `TEMPORADA ${selectedYear}`;
-    updateDashboardData(yearData, currentFilterLabel);
+    updateDashboardData(yearData);
 }
 
 // Actualizar contadores y estadios en la interfaz

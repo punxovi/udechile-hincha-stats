@@ -122,10 +122,15 @@ class GenerateFanDashboardUseCase:
             
             competition_counts[match.competition.name] += 1
 
-        puntos_obtenidos = (wins * 3) + (draws * 1)
-        puntos_posibles = total_matches * 3
-        win_percentage = (puntos_obtenidos / puntos_posibles) * 100.0
-        undefeated_percentage = ((wins + draws) / total_matches) * 100.0
+        # Solo contamos partidos con resultado reconocido (equipo identificado en BD)
+        recognized = wins + draws + losses
+        puntos_obtenidos = (wins * 3) + draws
+        if recognized == 0:
+            win_percentage = 0.0
+            undefeated_percentage = 0.0
+        else:
+            win_percentage = (puntos_obtenidos / (recognized * 3)) * 100.0
+            undefeated_percentage = ((wins + draws) / recognized) * 100.0
 
         sorted_stadiums = sorted(stadium_counts.items(), key=lambda x: x[1], reverse=True)
         most_visited_stadiums = [

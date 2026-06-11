@@ -117,6 +117,7 @@ class Match(BaseModel):
         - 'W' para Victoria (Win)
         - 'D' para Empate (Draw)
         - 'L' para Derrota (Loss)
+        Los penales se usan como desempate cuando el marcador regular es igualado.
         """
         u_goals = self.udechile_score
         o_goals = self.opponent_score
@@ -129,6 +130,11 @@ class Match(BaseModel):
         elif u_goals < o_goals:
             return "L"
         else:
+            # Empate en tiempo regular — desempatar por penales si están registrados
+            u_pen = self.home_penalties if self.is_udechile_home else self.away_penalties
+            o_pen = self.away_penalties if self.is_udechile_home else self.home_penalties
+            if u_pen is not None and o_pen is not None:
+                return "W" if u_pen > o_pen else "L"
             return "D"
 
     class Config:
