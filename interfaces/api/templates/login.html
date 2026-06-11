@@ -174,6 +174,35 @@
             transform: none;
         }
 
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper .form-input {
+            width: 100%;
+            padding-right: 3rem;
+        }
+
+        .toggle-pw-btn {
+            position: absolute;
+            right: 0.85rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            padding: 0.2rem;
+            transition: color 0.15s;
+            flex-shrink: 0;
+        }
+
+        .toggle-pw-btn:hover {
+            color: var(--text-primary);
+        }
+
         .auth-alert {
             padding: 1rem 1.2rem;
             border-radius: 12px;
@@ -244,13 +273,23 @@
         
         <div class="form-group">
             <label class="form-label" for="password">Contraseña</label>
-            <input class="form-input" type="password" id="password" required placeholder="••••••••" minlength="6">
+            <div class="input-wrapper">
+                <input class="form-input" type="password" id="password" required placeholder="••••••••" minlength="6">
+                <button type="button" class="toggle-pw-btn" onclick="togglePw('password', this)" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+                    <i data-lucide="eye" style="width: 1.1rem; height: 1.1rem;"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Campo Confirmar Contraseña (solo para Registro) -->
         <div class="form-group" id="confirm-password-group" style="display: none;">
             <label class="form-label" for="confirm-password">Confirmar Contraseña</label>
-            <input class="form-input" type="password" id="confirm-password" placeholder="••••••••" minlength="6">
+            <div class="input-wrapper">
+                <input class="form-input" type="password" id="confirm-password" placeholder="••••••••" minlength="6">
+                <button type="button" class="toggle-pw-btn" onclick="togglePw('confirm-password', this)" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+                    <i data-lucide="eye" style="width: 1.1rem; height: 1.1rem;"></i>
+                </button>
+            </div>
         </div>
         
         <button type="submit" id="submit-btn" class="auth-btn">
@@ -284,6 +323,19 @@
             icon.setAttribute('data-lucide', 'sun');
         } else {
             icon.setAttribute('data-lucide', 'moon');
+        }
+        lucide.createIcons();
+    }
+
+    function togglePw(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('[data-lucide]');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.setAttribute('data-lucide', 'eye-off');
+        } else {
+            input.type = 'password';
+            icon.setAttribute('data-lucide', 'eye');
         }
         lucide.createIcons();
     }
