@@ -246,30 +246,44 @@ class SaveDreamTeamPayload(BaseModel):
 @router.get("/juego")
 async def game_page(request: Request):
     """Renderiza la pantalla principal del juego de alineaciones."""
+    from interfaces.api.app import db_instance
+    from infrastructure.persistence.postgres_store import PostgresDatabase
+    import psycopg2.extras
+    
     current_user = get_current_user(request)
     
     # Obtener el muro de honor existente de este usuario si esta logueado
     muro_honor = []
     if current_user:
-        with db.get_connection() as conn:
-            cursor = conn.cursor()
+        with db_instance.get_connection() as conn:
+            is_pg = isinstance(db_instance, PostgresDatabase)
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor) if is_pg else conn.cursor()
+            param = "%s" if is_pg else "?"
             cursor.execute(
-                "SELECT team_name, formation, rating, players, date, campaign FROM dream_teams WHERE user_id = ? ORDER BY id DESC",
+                f"SELECT team_name, formation, rating, players, date, campaign FROM dream_teams WHERE user_id = {param} ORDER BY id DESC",
                 (current_user["id"],)
             )
             for row in cursor.fetchall():
+                try:
+                    row_dict = dict(row)
+                except Exception:
+                    row_dict = row
+                    
                 campaign_data = []
-                if "campaign" in row.keys() and row["campaign"]:
+                if "campaign" in row_dict and row_dict["campaign"]:
                     try:
-                        campaign_data = json.loads(row["campaign"])
+                        campaign_data = row_dict["campaign"] if isinstance(row_dict["campaign"], list) else json.loads(row_dict["campaign"])
                     except Exception:
                         pass
+                
+                players_data = row_dict["players"] if isinstance(row_dict["players"], list) else json.loads(row_dict["players"])
+                
                 muro_honor.append({
-                    "team_name": row["team_name"],
-                    "formation": row["formation"],
-                    "rating": row["rating"],
-                    "players": json.loads(row["players"]),
-                    "date": row["date"],
+                    "team_name": row_dict["team_name"],
+                    "formation": row_dict["formation"],
+                    "rating": row_dict["rating"],
+                    "players": players_data,
+                    "date": row_dict["date"],
                     "campaign": campaign_data
                 })
 
@@ -285,17 +299,22 @@ async def game_page(request: Request):
 
 @router.post("/api/juego/guardar")
 async def save_dream_team(request: Request, payload: SaveDreamTeamPayload):
-    """Guarda un Dream Team en el Muro de Honor en SQLite."""
+    """Guarda un Dream Team en el Muro de Honor en SQLite o Postgres."""
+    from interfaces.api.app import db_instance
+    from infrastructure.persistence.postgres_store import PostgresDatabase
+    
     current_user = get_current_user(request)
     if not current_user:
         return JSONResponse(status_code=401, content={"detail": "Debes iniciar sesión para guardar tu equipo"})
         
     date_str = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
     
-    with db.get_connection() as conn:
+    with db_instance.get_connection() as conn:
         cursor = conn.cursor()
+        is_pg = isinstance(db_instance, PostgresDatabase)
+        param = "%s" if is_pg else "?"
         cursor.execute(
-            "INSERT INTO dream_teams (user_id, team_name, formation, rating, players, date, campaign) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            f"INSERT INTO dream_teams (user_id, team_name, formation, rating, players, date, campaign) VALUES ({param}, {param}, {param}, {param}, {param}, {param}, {param})",
             (
                 current_user["id"],
                 payload.team_name,
@@ -313,30 +332,44 @@ async def save_dream_team(request: Request, payload: SaveDreamTeamPayload):
 @router.get("/api/juego/muro")
 async def get_muro_honor(request: Request):
     """Obtiene los registros del muro de honor en formato JSON."""
+    from interfaces.api.app import db_instance
+    from infrastructure.persistence.postgres_store import PostgresDatabase
+    import psycopg2.extras
+    
     current_user = get_current_user(request)
     if not current_user:
         return []
         
     muro = []
-    with db.get_connection() as conn:
-        cursor = conn.cursor()
+    with db_instance.get_connection() as conn:
+        is_pg = isinstance(db_instance, PostgresDatabase)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor) if is_pg else conn.cursor()
+        param = "%s" if is_pg else "?"
         cursor.execute(
-            "SELECT team_name, formation, rating, players, date, campaign FROM dream_teams WHERE user_id = ? ORDER BY id DESC",
+            f"SELECT team_name, formation, rating, players, date, campaign FROM dream_teams WHERE user_id = {param} ORDER BY id DESC",
             (current_user["id"],)
         )
         for row in cursor.fetchall():
+            try:
+                row_dict = dict(row)
+            except Exception:
+                row_dict = row
+                
             campaign_data = []
-            if "campaign" in row.keys() and row["campaign"]:
+            if "campaign" in row_dict and row_dict["campaign"]:
                 try:
-                    campaign_data = json.loads(row["campaign"])
+                    campaign_data = row_dict["campaign"] if isinstance(row_dict["campaign"], list) else json.loads(row_dict["campaign"])
                 except Exception:
                     pass
+            
+            players_data = row_dict["players"] if isinstance(row_dict["players"], list) else json.loads(row_dict["players"])
+            
             muro.append({
-                "team_name": row["team_name"],
-                "formation": row["formation"],
-                "rating": row["rating"],
-                "players": json.loads(row["players"]),
-                "date": row["date"],
+                "team_name": row_dict["team_name"],
+                "formation": row_dict["formation"],
+                "rating": row_dict["rating"],
+                "players": players_data,
+                "date": row_dict["date"],
                 "campaign": campaign_data
             })
     return muro

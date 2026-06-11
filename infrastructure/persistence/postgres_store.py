@@ -55,6 +55,20 @@ class PostgresDatabase:
                         entries JSONB NOT NULL
                     )
                 """)
+                
+                # Tabla de Dream Teams (Juego)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS dream_teams (
+                        id SERIAL PRIMARY KEY,
+                        user_id TEXT NOT NULL,
+                        team_name TEXT NOT NULL,
+                        formation TEXT NOT NULL,
+                        rating REAL NOT NULL,
+                        players JSONB NOT NULL,
+                        date TEXT NOT NULL,
+                        campaign JSONB
+                    )
+                """)
             conn.commit()
 
 
