@@ -289,17 +289,6 @@
         lucide.createIcons();
     }
 
-    // Inicializar cliente de Supabase
-    const supabaseUrl = "{{ supabase_url }}";
-    const supabaseKey = "{{ supabase_anon_key }}";
-    
-    let supabaseClient = null;
-    if (supabaseKey && supabaseKey !== "None" && supabaseKey !== "") {
-        supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    } else {
-        showAlert('error', 'Falta configurar la variable SUPABASE_ANON_KEY en tu archivo .env.');
-    }
-
     let activeMode = 'login';
 
     function switchTab(mode) {
@@ -356,18 +345,14 @@
     async function handleAuth(event) {
         event.preventDefault();
         hideAlert();
-        
-        if (!supabaseClient) {
-            showAlert('error', 'El cliente de Supabase no está configurado. Revisa tu archivo .env');
-            return;
-        }
 
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const submitBtn = document.getElementById('submit-btn');
+        let name = null;
         
         if (activeMode === 'register') {
-            const name = document.getElementById('name').value;
+            name = document.getElementById('name').value;
             const confirmPassword = document.getElementById('confirm-password').value;
             
             if (password !== confirmPassword) {
@@ -381,101 +366,36 @@
         lucide.createIcons();
 
         try {
-            if (activeMode === 'login') {
-                // Iniciar sesión
-                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                
-                await setSession(data.session);
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    name: name
+                })
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
             } else {
-                // Registrarse
-                const name = document.getElementById('name').value;
-                const { data, error } = await supabaseClient.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            full_name: name
-                        }
-                    }
-                });
-                if (error) throw error;
-                
-                // Si identities está vacío, significa que el correo ya existía en la base de datos (Protección contra Enumeración de Supabase)
-                if (data.user && data.user.identities && data.user.identities.length === 0) {
-                    showAlert('error', 'Este correo electrónico ya está registrado. Por favor, inicia sesión.');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i data-lucide="user-check" style="width: 1.4rem; height: 1.4rem;"></i> CREAR CUENTA';
-                    lucide.createIcons();
-                    return;
-                }
-                
-                // En Supabase gratis, si no hay confirmación de email activada, inicia sesión directo
-                if (data.session) {
-                    await setSession(data.session);
-                } else {
-                    showAlert('success', '¡Cuenta creada! Revisa tu correo de confirmación.');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i data-lucide="user-check" style="width: 1.4rem; height: 1.4rem;"></i> CREAR CUENTA';
-                    lucide.createIcons();
-                }
+                showAlert('error', 'Credenciales incorrectas o error en el servidor.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = activeMode === 'login' 
+                    ? '<i data-lucide="arrow-right-circle" style="width: 1.4rem; height: 1.4rem;"></i> INGRESAR' 
+                    : '<i data-lucide="user-check" style="width: 1.4rem; height: 1.4rem;"></i> CREAR CUENTA';
+                lucide.createIcons();
             }
         } catch (err) {
             console.error(err);
-            showAlert('error', err.message || 'Ocurrió un error inesperado.');
+            showAlert('error', 'Ocurrió un error inesperado al conectar con el servidor.');
             submitBtn.disabled = false;
             submitBtn.innerHTML = activeMode === 'login' 
                 ? '<i data-lucide="arrow-right-circle" style="width: 1.4rem; height: 1.4rem;"></i> INGRESAR' 
                 : '<i data-lucide="user-check" style="width: 1.4rem; height: 1.4rem;"></i> CREAR CUENTA';
             lucide.createIcons();
-        }
-    }
-
-    async function setSession(session) {
-        if (!session) return;
-        
-        // Extraer el nombre de hincha desde los metadatos de Supabase
-        let fullName = session.user.user_metadata ? session.user.user_metadata.full_name : null;
-        
-        // Si la cuenta es antigua o se registró antes de tener el campo Nombre, le preguntamos amistosamente
-        if (!fullName || fullName.trim() === "") {
-            const chosenName = prompt("¡Bienvenido a U de Chile Stats!\nPor favor, ingresa tu Nombre de Hincha:");
-            if (chosenName && chosenName.trim() !== "") {
-                fullName = chosenName.trim();
-                try {
-                    // Actualizar los metadatos del usuario en Supabase en tiempo real
-                    await supabaseClient.auth.updateUser({
-                        data: { full_name: fullName }
-                    });
-                } catch (updateErr) {
-                    console.error("No se pudo guardar el nombre en Supabase:", updateErr);
-                }
-            } else {
-                // Fallback si cancela o deja en blanco
-                fullName = session.user.email.split('@')[0];
-            }
-        }
-        
-        // Enviar sesión a FastAPI para configurar las cookies de sesión del servidor
-        const response = await fetch('/api/auth/session', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                user_id: session.user.id,
-                email: session.user.email,
-                access_token: session.access_token,
-                name: fullName
-            })
-        });
-
-        if (response.ok) {
-            // Redirigir al inicio una vez que las cookies están configuradas
-            window.location.href = '/';
-        } else {
-            showAlert('error', 'Error al sincronizar sesión del servidor.');
-            document.getElementById('submit-btn').disabled = false;
         }
     }
 </script>
