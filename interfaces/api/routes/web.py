@@ -74,6 +74,10 @@ async def local_login(payload: LoginPayload):
         user_id = "hincha_1"
         display_name = payload.name or "Hincha Uno"
     elif prefix == "bustamantevicente12" or email_lower == "vicente_bg" or prefix == "vicente_bg":
+        # Proteger el perfil principal con contraseña
+        admin_pass = os.getenv("ADMIN_PASSWORD", "UdeChile1927")
+        if payload.password != admin_pass:
+            return JSONResponse(status_code=401, content={"status": "error", "message": "Contraseña incorrecta para el perfil de administrador."})
         user_id = "Vicente_Bg"
         display_name = payload.name or "Vicente Bg"
     else:
