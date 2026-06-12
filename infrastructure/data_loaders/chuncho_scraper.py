@@ -1325,6 +1325,18 @@ TEMPORADAS_CONFIG[2010] = {
     ]
 }
 
+TEMPORADAS_CONFIG[2013] = {
+    "resultados": [
+        {
+            "id": "comp_sudamericana_2013",
+            "name": "Copa Sudamericana 2013",
+            "url": "https://www.chuncho.com/anuarios/sud2013.html",
+            "season": "2013",
+            "type": "matches"
+        }
+    ]
+}
+
 MONTHS = {
     "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6,
     "julio": 7, "agosto": 8, "septiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12
@@ -1563,129 +1575,127 @@ def parse_anuario_campaign_matches(html_content: str, comp_id: str, comp_name: s
     soup = BeautifulSoup(html_content, "html.parser")
     tables = soup.find_all('table')
     comp_saved = 0
-    
-    target_table = None
+    notes_text = soup.get_text()
+
+    # Recopilar TODAS las tablas de campaña con su fase (no solo la primera)
+    campaign_tables = []
     for tbl in tables:
         caption = tbl.find('caption')
-        caption_text = caption.get_text() if caption else ""
-        if "Campaña" in caption_text or tbl.find('tr'):
-            first_row = tbl.find('tr')
-            headers = [td.get_text(strip=True).upper() for td in first_row.find_all(['td', 'th'])]
-            if "FECHA" in headers and "RIVAL" in headers and "RES" in headers:
-                target_table = tbl
-                break
-                
-    if not target_table:
+        caption_text = caption.get_text(strip=True) if caption else ""
+        first_row = tbl.find('tr')
+        if not first_row:
+            continue
+        headers = [td.get_text(strip=True).upper() for td in first_row.find_all(['td', 'th'])]
+        if "FECHA" in headers and "RIVAL" in headers and "RES" in headers:
+            # Extraer stage del caption: "Campaña - Primera Fase" → "Primera Fase"
+            stage = caption_text
+            if "-" in stage:
+                stage = stage.split("-", 1)[1].strip()
+            elif "Campaña" in stage:
+                stage = stage.replace("Campaña", "").strip()
+            if not stage:
+                stage = "Fase Regular"
+            campaign_tables.append((tbl, stage))
+
+    if not campaign_tables:
         print("  -> [ERROR] No se encontró la tabla de partidos de campaña en el anuario.")
         return 0
-        
-    notes_text = soup.get_text()
-    
-    rows = target_table.find_all('tr')[1:] # Saltamos la cabecera
-    for idx, row in enumerate(rows):
-        cols = row.find_all('td')
-        if len(cols) < 4:
-            continue
-            
-        fecha_raw = cols[0].get_text(strip=True)
-        cancha = cols[1].get_text(strip=True)
-        rival = cols[2].get_text(strip=True)
-        res_raw = cols[3].get_text(strip=True) # ej: "2x1"
-        notes_col = cols[5].get_text(strip=True) if len(cols) > 5 else ""
-        
-        # Limpiar rival
-        rival = rival.replace("<b>", "").replace("</b>", "").strip()
-        
-        if not fecha_raw or not res_raw or "x" not in res_raw:
-            continue
-            
-        # Parsear fecha D/M/YYYY
-        date_parts = fecha_raw.split("/")
-        if len(date_parts) == 3:
-            match_date = datetime.date(int(date_parts[2]), int(date_parts[1]), int(date_parts[0]))
-        else:
-            match_date = datetime.date(year, 1, 1)
-            
-        # Parsear goles de la U x goles del rival
-        res_parts = res_raw.split("x")
-        if len(res_parts) == 2:
-            try:
-                goles_u = int(res_parts[0])
-                goles_rival = int(res_parts[1])
-            except ValueError:
+
+    local_stadiums = ["nacional", "santa laura", "el teniente", "la portada", "sausalito", "valparaiso", "monumental"]
+
+    for target_table, current_stage in campaign_tables:
+        rows = target_table.find_all('tr')[1:]  # Saltamos la cabecera
+        for row in rows:
+            cols = row.find_all('td')
+            if len(cols) < 4:
                 continue
-        else:
-            continue
-            
-        # Determinar localía
-        local_stadiums = ["nacional", "santa laura", "el teniente", "la portada", "sausalito", "valparaiso", "monumental"]
-        cancha_lower = cancha.lower()
-        
-        # Por defecto, asumimos visita a menos que el estadio sea conocido como local
-        is_u_local = any(ls in cancha_lower for ls in local_stadiums)
-        
-        # Casos específicos
-        if cancha_lower == "cap":
-            is_u_local = False
-            
-        if is_u_local:
-            home_team = "UNIVERSIDAD DE CHILE"
-            away_team = rival.upper()
-            home_score = goles_u
-            away_score = goles_rival
-        else:
-            home_team = rival.upper()
-            away_team = "UNIVERSIDAD DE CHILE"
-            home_score = goles_rival
-            away_score = goles_u
-            
-        # Parsear penales
-        home_penalties = None
-        away_penalties = None
-        
-        if "[1]" in notes_col or "[1]" in res_raw:
-            # Parsear penales para la nota [1]
-            pen_match = re.search(r'"U"\s*(\d+):.*?\b([A-Z]{2,4})\s*(\d+):', notes_text, re.IGNORECASE | re.DOTALL)
-            if pen_match:
-                u_pens = int(pen_match.group(1))
-                rival_pens = int(pen_match.group(3))
-                if is_u_local:
-                    home_penalties = u_pens
-                    away_penalties = rival_pens
-                else:
-                    home_penalties = rival_pens
-                    away_penalties = u_pens
-                    
-        # Evitar duplicados
-        with repo._db.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT id FROM matches 
-                WHERE date = ? AND home_team = ? AND away_team = ?
-            """, (match_date.isoformat(), home_team, away_team))
-            existing_match = cursor.fetchone()
-            
-        if existing_match:
-            match_id = existing_match["id"]
-        else:
-            match_id = f"chuncho_{match_date.strftime('%Y%m%d')}_{uuid.uuid4().hex[:4]}"
-            
-        stadium_id = f"st_{cancha.replace(' ', '_').replace(',', '').lower()[:20]}"
-        stadium = Stadium(id=stadium_id, name=cancha)
-        
-        competition = Competition(id=comp_id, name=comp_name, season=season)
-        
-        domain_match = Match(
-            id=match_id, date=match_date, home_team=home_team, away_team=away_team,
-            home_score=home_score, away_score=away_score,
-            home_penalties=home_penalties, away_penalties=away_penalties,
-            stadium=stadium, competition=competition, stage="Primera Fase", attendance_count=None
-        )
-        
-        repo.insert_match(domain_match)
-        comp_saved += 1
-        print(f"  [OK] {match_date.strftime('%d/%m/%Y')} | Primera Fase             | {home_team[:15]:<15} {home_score}-{away_score} {away_team[:15]:<15} (Pens: {home_penalties}-{away_penalties})")
-        
+
+            fecha_raw = cols[0].get_text(strip=True)
+            cancha = cols[1].get_text(strip=True)
+            rival = cols[2].get_text(strip=True)
+            res_raw = cols[3].get_text(strip=True)  # ej: "2x1"
+            notes_col = cols[5].get_text(strip=True) if len(cols) > 5 else ""
+
+            rival = rival.replace("<b>", "").replace("</b>", "").strip()
+
+            if not fecha_raw or not res_raw or "x" not in res_raw:
+                continue
+
+            # Parsear fecha D/M/YYYY
+            date_parts = fecha_raw.split("/")
+            if len(date_parts) == 3:
+                match_date = datetime.date(int(date_parts[2]), int(date_parts[1]), int(date_parts[0]))
+            else:
+                match_date = datetime.date(year, 1, 1)
+
+            # Parsear goles: formato es siempre U x Rival
+            res_parts = res_raw.split("x")
+            if len(res_parts) == 2:
+                try:
+                    goles_u = int(res_parts[0])
+                    goles_rival = int(res_parts[1])
+                except ValueError:
+                    continue
+            else:
+                continue
+
+            # Determinar localía por nombre de estadio
+            cancha_lower = cancha.lower()
+            is_u_local = any(ls in cancha_lower for ls in local_stadiums)
+            if cancha_lower == "cap":
+                is_u_local = False
+
+            if is_u_local:
+                home_team = "UNIVERSIDAD DE CHILE"
+                away_team = rival.upper()
+                home_score = goles_u
+                away_score = goles_rival
+            else:
+                home_team = rival.upper()
+                away_team = "UNIVERSIDAD DE CHILE"
+                home_score = goles_rival
+                away_score = goles_u
+
+            # Parsear penales (solo cuando la nota [1] indica tanda de penales)
+            home_penalties = None
+            away_penalties = None
+            if "[1]" in notes_col or "[1]" in res_raw:
+                pen_match = re.search(r'"U"\s*(\d+):.*?\b([A-Z]{2,4})\s*(\d+):', notes_text, re.IGNORECASE | re.DOTALL)
+                if pen_match:
+                    u_pens = int(pen_match.group(1))
+                    rival_pens = int(pen_match.group(3))
+                    if is_u_local:
+                        home_penalties = u_pens
+                        away_penalties = rival_pens
+                    else:
+                        home_penalties = rival_pens
+                        away_penalties = u_pens
+
+            # Evitar duplicados
+            with repo._db.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT id FROM matches WHERE date = ? AND home_team = ? AND away_team = ?",
+                    (match_date.isoformat(), home_team, away_team)
+                )
+                existing_match = cursor.fetchone()
+
+            match_id = existing_match["id"] if existing_match else f"chuncho_{match_date.strftime('%Y%m%d')}_{uuid.uuid4().hex[:4]}"
+
+            stadium = Stadium(id=f"st_{cancha.replace(' ', '_').replace(',', '').lower()[:20]}", name=cancha)
+            competition = Competition(id=comp_id, name=comp_name, season=season)
+
+            domain_match = Match(
+                id=match_id, date=match_date, home_team=home_team, away_team=away_team,
+                home_score=home_score, away_score=away_score,
+                home_penalties=home_penalties, away_penalties=away_penalties,
+                stadium=stadium, competition=competition, stage=current_stage, attendance_count=None
+            )
+
+            repo.insert_match(domain_match)
+            comp_saved += 1
+            print(f"  [OK] {match_date.strftime('%d/%m/%Y')} | {current_stage:<25} | {home_team[:20]:<20} {home_score}-{away_score} {away_team[:20]:<20}")
+
     return comp_saved
 
 def scrape_year_config(year: int, clear: bool, force: bool):
