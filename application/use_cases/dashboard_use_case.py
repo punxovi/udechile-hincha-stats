@@ -3,6 +3,7 @@ from collections import defaultdict
 
 from application.ports.repositories import MatchRepository, AttendanceRepository
 from domain.models import FanDashboardSnapshot, StadiumVisit, OpponentStreak, Stadium
+from domain.stadium_normalizer import normalize_stadium
 
 class GenerateFanDashboardUseCase:
     """
@@ -13,71 +14,10 @@ class GenerateFanDashboardUseCase:
         self._attendance_repository = attendance_repository
 
     def _normalize_stadium(self, stadium: Stadium) -> Stadium:
-        """
-        Normaliza el nombre y ciudad del estadio para unificar registros equivalentes.
-        """
-        name = stadium.name.strip()
-        name_lower = name.lower()
-        
-        # Nacional
-        if "nacional" in name_lower and "ñuñoa" in name_lower:
-            normalized_name = "Estadio Nacional, Ñuñoa, Santiago de Chile"
-            normalized_city = "Santiago"
-        # Santa Laura
-        elif "santa laura" in name_lower:
-            normalized_name = "Estadio Santa Laura, Independencia, Santiago de Chile"
-            normalized_city = "Santiago"
-        # San Carlos de Apoquindo
-        elif "san carlos" in name_lower and "apoquindo" in name_lower:
-            normalized_name = "Estadio San Carlos de Apoquindo, Las Condes, Santiago de Chile"
-            normalized_city = "Santiago"
-        # El Teniente
-        elif "el teniente" in name_lower or ("teniente" in name_lower and "rancagua" in name_lower):
-            normalized_name = "Estadio Bicentenario El Teniente, Rancagua"
-            normalized_city = "Rancagua"
-        # Ester Roa / Collao
-        elif "ester roa" in name_lower or "collao" in name_lower:
-            normalized_name = "Estadio Bicentenario Ester Roa, Collao, Concepción"
-            normalized_city = "Concepción"
-        # La Cisterna
-        elif "cisterna" in name_lower:
-            normalized_name = "Estadio Municipal, La Cisterna, Santiago de Chile"
-            normalized_city = "Santiago"
-        # Monumental
-        elif "monumental" in name_lower or "pedrero" in name_lower:
-            normalized_name = "Estadio Monumental, Macul, Santiago de Chile"
-            normalized_city = "Santiago"
-        # Francisco Sánchez Rumoroso
-        elif "sánchez rumoroso" in name_lower or "sanchez rumoroso" in name_lower or "coquimbo" in name_lower:
-            normalized_name = "Estadio Bicentenario Francisco Sánchez Rumoroso, Coquimbo"
-            normalized_city = "Coquimbo"
-        # Sausalito
-        elif "sausalito" in name_lower or "viña del mar" in name_lower:
-            normalized_name = "Estadio Sausalito, Viña del Mar"
-            normalized_city = "Viña del Mar"
-        # Elías Figueroa / Playa Ancha
-        elif "elías figueroa" in name_lower or "elias figueroa" in name_lower or "playa ancha" in name_lower:
-            normalized_name = "Estadio Elías Figueroa Brander, Playa Ancha, Valparaíso"
-            normalized_city = "Valparaíso"
-        # Lucio Fariña
-        elif "lucio fariña" in name_lower or "lucio farina" in name_lower or "quillota" in name_lower:
-            normalized_name = "Estadio Municipal Lucio Fariña Fernández, Quillota"
-            normalized_city = "Quillota"
-        # Calera
-        elif "nicolás chahuán" in name_lower or "nicolas chahuan" in name_lower or "calera" in name_lower:
-            normalized_name = "Estadio Municipal Nicolás Chahuán Nazar, La Calera"
-            normalized_city = "La Calera"
-        else:
-            # Fallback
-            normalized_name = name
-            normalized_city = stadium.city
-
-        return Stadium(
-            id=stadium.id,
-            name=normalized_name,
-            city=normalized_city,
-            country=stadium.country
+        canon_name, canon_city, canon_country = normalize_stadium(
+            stadium.name, stadium.city, stadium.country
         )
+        return Stadium(id=stadium.id, name=canon_name, city=canon_city, country=canon_country)
 
     def _calculate_snapshot(self, matches: List) -> FanDashboardSnapshot:
         total_matches = len(matches)
